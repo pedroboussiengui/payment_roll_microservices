@@ -16,11 +16,13 @@ class SetUserContract(
             throw Exception("Failed verification token")
         }
         val userId = jwtService.getSubject(token)
-        val user = userRepository.findById(UUID.fromString(userId)) ?: throw UserNotFoundByIdException(userId)
+        val user = userRepository.findById(UUID.fromString(userId))
+            ?: throw UserNotFoundByIdException(userId)
         if (!user.contracts.contains(UUID.fromString(input.contractId ))) {
             Exception("Invalid contract to set")
         }
         val accessToken = jwtService.generateAccessToken(user, input.contractId)
+        //todo: create user session, refresh token can revoke user session
         return SetUserContractOutput(
             accessToken = accessToken,
             refreshToken = ""

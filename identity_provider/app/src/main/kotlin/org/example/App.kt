@@ -7,19 +7,24 @@ import org.example.application.usecase.AddUserContract
 import org.example.application.usecase.Login
 import org.example.application.usecase.LoginInput
 import org.example.application.usecase.RetrieveUser
+import org.example.application.usecase.SetUserContract
+import org.example.application.usecase.SetUserContractInput
 import org.example.application.usecase.UserRegistration
 import org.example.application.usecase.UserRegistrationInput
 import org.example.domain.UserNotFoundByIdException
 import org.example.domain.UserNotFoundException
+import org.example.infra.BCryptPasswordHash
 import org.example.infra.InMemoryUserRepository
 import java.util.UUID
 
 fun main() {
     val userRepository = InMemoryUserRepository()
-    val userRegistration = UserRegistration(userRepository)
+    val passwordHash = BCryptPasswordHash()
+    val userRegistration = UserRegistration(userRepository, passwordHash)
     val retrieveUser = RetrieveUser(userRepository)
-    val login = Login(userRepository)
+    val login = Login(userRepository, passwordHash)
     val addUserContract = AddUserContract(userRepository)
+    val setUserContract = SetUserContract(userRepository)
 
     val output = userRegistration.execute(
         UserRegistrationInput("pedroteste", "12345", "pedro@email.com")
@@ -33,26 +38,36 @@ fun main() {
         println(e.message)
     }
 
-//    try {
-//        val output = retrieveUser.execute("ddadaafdsadadadasdadadsad")
-//        println(output)
-//    } catch (e: UserNotFoundByIdException) {
-//        println(e.message)
-//    } catch (ex: Exception) {
-//        println(ex.message)
-//    }
-//
-//    try {
-//        val result = login.execute(LoginInput("pedroteste", "12345"))
-//        println(result)
-//    } catch (e: Exception) {
-//        println(e.message)
-//    }
+    try {
+        val output = retrieveUser.execute("ddadaafdsadadadasdadadsad")
+        println(output)
+    } catch (e: UserNotFoundByIdException) {
+        println(e.message)
+    } catch (ex: Exception) {
+        println(ex.message)
+    }
+
 
     try {
-        val output = addUserContract.execute(output.userId, UUID.randomUUID().toString())
-        println(output.contracts)
-    } catch (e: UserNotFoundException) {
+        // to login
+        val result = login.execute(LoginInput("pedroteste", "12345"))
+        println(result)
+
+        // add contract
+        val contractId = UUID.randomUUID().toString()
+        addUserContract.execute(output.userId, contractId)
+
+        // set contract
+        val output = setUserContract.execute(SetUserContractInput(result.token, contractId))
+        println(output)
+    } catch (e: Exception) {
         println(e.message)
     }
+
+//    try {
+//        val output = addUserContract.execute(output.userId, UUID.randomUUID().toString())
+//        println(output.contracts)
+//    } catch (e: UserNotFoundException) {
+//        println(e.message)
+//    }
 }

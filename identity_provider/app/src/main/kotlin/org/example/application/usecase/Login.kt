@@ -1,22 +1,18 @@
 package org.example.application.usecase
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
-import com.password4j.Password
 import org.example.application.service.JWTService
 import org.example.domain.UserNotFoundException
+import org.example.infra.PasswordHash
 import org.example.infra.UserRepository
-import java.time.Instant
-
-
 
 class Login(
-    val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val passwordHash: PasswordHash
 ) {
     fun execute(login: LoginInput): LoginOutput {
         val user = userRepository.findByUsername(login.username)
                         ?: throw UserNotFoundException()
-        val ok = Password.check(login.password, user.password).withArgon2()
+        val ok = passwordHash.check(login.password, user.password)
 
         if (!ok || user.username != login.username) {
             throw AuthenticationFailedException("Password or username are incorrect")

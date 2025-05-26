@@ -1,20 +1,18 @@
 package org.example.application.usecase
 
-import com.password4j.Password
 import org.example.domain.User
+import org.example.infra.PasswordHash
 import org.example.infra.UserRepository
 
 class UserRegistration(
-    val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val passwordHash: PasswordHash
 ) {
     fun execute(input: UserRegistrationInput): UserRegistrationOutput {
-        val hashPassword = Password.hash(input.password)
-            .addRandomSalt()
-            .withArgon2()
-
+        val hashPassword = passwordHash.hash(input.password)
         val user = User.create(
             username = input.username,
-            password = hashPassword.result,
+            password = hashPassword,
             email = input.email
         )
         userRepository.save(user)

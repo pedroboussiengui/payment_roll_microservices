@@ -12,6 +12,8 @@ class JWTService {
 
     private val algorithm = Algorithm.HMAC256(SECRET_KEY)
     private val issuer = "identity_provider"
+    private val partialTokenExpiration: Long = 60 * 5
+    private val accessTokenExpiration: Long = 60 * 10
     private val verifier = JWT.require(algorithm)
         .withIssuer(issuer)
         .build()
@@ -22,7 +24,7 @@ class JWTService {
             .withSubject(user.userId.toString())
             .withClaim("type", "partial")
             .withClaim("name", user.username)
-            .withExpiresAt(Instant.now().plusSeconds(60 * 5))
+            .withExpiresAt(Instant.now().plusSeconds(partialTokenExpiration))
             .sign(algorithm)
     }
 
@@ -33,7 +35,7 @@ class JWTService {
             .withClaim("type", "access_token")
             .withClaim("name", user.username)
             .withClaim("contract_id", contractId)
-            .withExpiresAt(Instant.now().plusSeconds(60 * 5))
+            .withExpiresAt(Instant.now().plusSeconds(accessTokenExpiration))
             .sign(algorithm)
     }
 
