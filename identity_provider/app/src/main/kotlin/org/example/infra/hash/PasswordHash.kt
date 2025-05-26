@@ -1,4 +1,4 @@
-package org.example.infra
+package org.example.infra.hash
 
 import com.password4j.Password
 

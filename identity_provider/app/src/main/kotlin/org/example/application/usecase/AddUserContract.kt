@@ -2,7 +2,7 @@ package org.example.application.usecase
 
 import org.example.domain.UserNotFoundByIdException
 import org.example.domain.UserStatus
-import org.example.infra.UserRepository
+import org.example.infra.repository.UserRepository
 import java.time.Instant
 import java.util.*
 

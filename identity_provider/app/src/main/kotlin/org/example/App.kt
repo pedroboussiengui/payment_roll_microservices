@@ -6,6 +6,10 @@ package org.example
 import org.example.application.usecase.AddUserContract
 import org.example.application.usecase.Login
 import org.example.application.usecase.LoginInput
+import org.example.application.usecase.Logout
+import org.example.application.usecase.RefreshToken
+import org.example.application.usecase.RefreshTokenInput
+import org.example.application.usecase.RetrieveSessionByID
 import org.example.application.usecase.RetrieveUser
 import org.example.application.usecase.SetUserContract
 import org.example.application.usecase.SetUserContractInput
@@ -13,39 +17,48 @@ import org.example.application.usecase.UserRegistration
 import org.example.application.usecase.UserRegistrationInput
 import org.example.domain.UserNotFoundByIdException
 import org.example.domain.UserNotFoundException
-import org.example.infra.BCryptPasswordHash
-import org.example.infra.InMemoryUserRepository
+import org.example.infra.hash.BCryptPasswordHash
+import org.example.infra.redis.RedisConnection
+import org.example.infra.redis.RedisInMemoryDao
+import org.example.infra.repository.InMemoryUserRepository
 import java.util.UUID
 
 fun main() {
     val userRepository = InMemoryUserRepository()
     val passwordHash = BCryptPasswordHash()
+    val redisConn = RedisConnection
+    val inMemoryDao = RedisInMemoryDao(redisConn)
     val userRegistration = UserRegistration(userRepository, passwordHash)
     val retrieveUser = RetrieveUser(userRepository)
     val login = Login(userRepository, passwordHash)
     val addUserContract = AddUserContract(userRepository)
-    val setUserContract = SetUserContract(userRepository)
+    val setUserContract = SetUserContract(userRepository, inMemoryDao, passwordHash)
+    val logout = Logout(inMemoryDao)
+    val retrieveSessionByID = RetrieveSessionByID(inMemoryDao)
+    val refreshToken = RefreshToken(userRepository, inMemoryDao, passwordHash)
 
     val output = userRegistration.execute(
         UserRegistrationInput("pedroteste", "12345", "pedro@email.com")
     )
     println(output)
 
-    try {
-        val output = retrieveUser.execute(output.userId)
-        println(output)
-    } catch (e: UserNotFoundException) {
-        println(e.message)
-    }
+//    try {
+//        val output = retrieveUser.execute(output.userId)
+//        println(output)
+//    } catch (e: UserNotFoundException) {
+//        println(e.message)
+//    }
+//
+//    try {
+//        val output = retrieveUser.execute("ddadaafdsadadadasdadadsad")
+//        println(output)
+//    } catch (e: UserNotFoundByIdException) {
+//        println(e.message)
+//    } catch (ex: Exception) {
+//        println(ex.message)
+//    }
 
-    try {
-        val output = retrieveUser.execute("ddadaafdsadadadasdadadsad")
-        println(output)
-    } catch (e: UserNotFoundByIdException) {
-        println(e.message)
-    } catch (ex: Exception) {
-        println(ex.message)
-    }
+    println("---------------------")
 
 
     try {
@@ -60,14 +73,20 @@ fun main() {
         // set contract
         val output = setUserContract.execute(SetUserContractInput(result.token, contractId))
         println(output)
+
+        println("Sessão antes: ${retrieveSessionByID.execute(output.sessionId)}")
+
+        Thread.sleep(2000)
+
+        // refresh token
+        val refresh = refreshToken.execute(RefreshTokenInput(output.refreshToken))
+        println(refresh)
+
+        println("Sessão depois: ${retrieveSessionByID.execute(output.sessionId)}")
+
+        // logout
+        logout.execute(output.refreshToken)
     } catch (e: Exception) {
         println(e.message)
     }
-
-//    try {
-//        val output = addUserContract.execute(output.userId, UUID.randomUUID().toString())
-//        println(output.contracts)
-//    } catch (e: UserNotFoundException) {
-//        println(e.message)
-//    }
 }

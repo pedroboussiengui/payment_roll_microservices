@@ -8,6 +8,7 @@
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     alias(libs.plugins.kotlin.jvm)
+    kotlin("plugin.serialization") version "1.9.0"
 
     // Apply the application plugin to add support for building a CLI application in Java.
     application
@@ -30,6 +31,8 @@ dependencies {
     implementation("com.auth0:java-jwt:4.5.0") // jwt utility
     implementation("com.password4j:password4j:1.8.2") // password hash
     implementation("org.slf4j:slf4j-simple:2.0.17")
+    implementation("redis.clients:jedis:5.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

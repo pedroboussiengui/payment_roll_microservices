@@ -1,8 +1,8 @@
 package org.example.application.usecase
 
 import org.example.domain.User
-import org.example.infra.PasswordHash
-import org.example.infra.UserRepository
+import org.example.infra.hash.PasswordHash
+import org.example.infra.repository.UserRepository
 
 class UserRegistration(
     private val userRepository: UserRepository,

@@ -2,8 +2,8 @@ package org.example.application.usecase
 
 import org.example.application.service.JWTService
 import org.example.domain.UserNotFoundException
-import org.example.infra.PasswordHash
-import org.example.infra.UserRepository
+import org.example.infra.hash.PasswordHash
+import org.example.infra.repository.UserRepository
 
 class Login(
     private val userRepository: UserRepository,

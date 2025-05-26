@@ -1,4 +1,4 @@
-package org.example.infra
+package org.example.infra.repository
 
 import org.example.domain.User
 import java.util.UUID
