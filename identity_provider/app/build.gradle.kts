@@ -33,6 +33,12 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.17")
     implementation("redis.clients:jedis:5.2.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("io.ktor:ktor-server-core:3.1.1")
+    implementation("io.ktor:ktor-server-netty:3.1.1")
+    implementation("io.ktor:ktor-server-html-builder:3.1.1")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.1")
+    implementation("io.ktor:ktor-server-content-negotiation:3.1.1")
+    implementation("io.ktor:ktor-server-cors:3.1.1")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

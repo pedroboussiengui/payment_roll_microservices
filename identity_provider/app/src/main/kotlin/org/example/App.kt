@@ -3,6 +3,30 @@
  */
 package org.example
 
+import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.install
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.html.respondHtml
+import io.ktor.server.netty.Netty
+import io.ktor.server.request.receiveParameters
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondRedirect
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.head
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
+import kotlinx.html.FormMethod
+import kotlinx.html.body
+import kotlinx.html.form
+import kotlinx.html.h1
+import kotlinx.html.p
+import kotlinx.html.passwordInput
+import kotlinx.html.style
+import kotlinx.html.submitInput
+import kotlinx.html.textInput
+import kotlinx.html.title
 import org.example.application.usecase.AddUserContract
 import org.example.application.usecase.Login
 import org.example.application.usecase.LoginInput
@@ -22,6 +46,8 @@ import org.example.infra.redis.RedisConnection
 import org.example.infra.redis.RedisInMemoryDao
 import org.example.infra.repository.InMemoryUserRepository
 import java.util.UUID
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.cors.routing.CORS
 
 fun main() {
     val userRepository = InMemoryUserRepository()
@@ -37,10 +63,62 @@ fun main() {
     val retrieveSessionByID = RetrieveSessionByID(inMemoryDao)
     val refreshToken = RefreshToken(userRepository, inMemoryDao, passwordHash)
 
-    val output = userRegistration.execute(
+    userRegistration.execute(
         UserRegistrationInput("pedroteste", "12345", "pedro@email.com")
     )
-    println(output)
+
+    embeddedServer(Netty, port = 8080) {
+        install(ContentNegotiation) {
+            json()
+        }
+        install(CORS) {
+            anyHost()
+        }
+        routing {
+            get("/auth") {
+                val erro = call.request.queryParameters["error"]
+                call.respondHtml(HttpStatusCode.OK) {
+                    head {
+                        title
+                        ("Login page")
+                    }
+                    body {
+                        form(action = "/login", method = FormMethod.post) {
+                            textInput(name = "username") { placeholder = "username" }
+                            passwordInput(name = "password") { placeholder = "password" }
+
+                            submitInput { value = "Login" }
+                        }
+                        if (erro != null) {
+                            p {
+                                style = "color:red;"
+                                +"Invalid username or password"
+                            }
+                        }
+                    }
+                }
+            }
+            post("/login") {
+                val formParameters = call.receiveParameters()
+                val username = formParameters["username"].toString()
+                val password = formParameters["password"].toString()
+
+                try {
+                    val result = login.execute(LoginInput(username, password))
+//                    call.respond(HttpStatusCode.OK, result)
+                    call.respondRedirect("http://localhost:5173/callback?token=${result.token}")
+                } catch (e: Exception) {
+                    call.respondRedirect("/auth?error=1")
+                }
+            }
+        }
+    }.start(wait = true)
+
+
+//    val output = userRegistration.execute(
+//        UserRegistrationInput("pedroteste", "12345", "pedro@email.com")
+//    )
+//    println(output)
 
 //    try {
 //        val output = retrieveUser.execute(output.userId)
@@ -58,35 +136,39 @@ fun main() {
 //        println(ex.message)
 //    }
 
-    println("---------------------")
+//    println("---------------------")
 
 
-    try {
-        // to login
-        val result = login.execute(LoginInput("pedroteste", "12345"))
-        println(result)
+//    try {
+//        // to login
+//        val result = login.execute(LoginInput("pedroteste", "12345"))
+//        println(result)
+//
+//        // add contract
+//        val contractId = UUID.randomUUID().toString()
+//        addUserContract.execute(output.userId, contractId)
+//
+//        // set contract
+//        val output = setUserContract.execute(SetUserContractInput(result.token, contractId))
+//        println(output)
+//
+//        println("Sessão antes: ${retrieveSessionByID.execute(output.sessionId)}")
+//
+//        Thread.sleep(2000)
+//
+//        // refresh token
+//        val refresh = refreshToken.execute(RefreshTokenInput(output.refreshToken))
+//        println(refresh)
+//
+//        println("Sessão depois: ${retrieveSessionByID.execute(output.sessionId)}")
+//
+//        // logout
+//        logout.execute(output.refreshToken)
+//    } catch (e: Exception) {
+//        println(e.message)
+//    }
 
-        // add contract
-        val contractId = UUID.randomUUID().toString()
-        addUserContract.execute(output.userId, contractId)
-
-        // set contract
-        val output = setUserContract.execute(SetUserContractInput(result.token, contractId))
-        println(output)
-
-        println("Sessão antes: ${retrieveSessionByID.execute(output.sessionId)}")
-
-        Thread.sleep(2000)
-
-        // refresh token
-        val refresh = refreshToken.execute(RefreshTokenInput(output.refreshToken))
-        println(refresh)
-
-        println("Sessão depois: ${retrieveSessionByID.execute(output.sessionId)}")
-
-        // logout
-        logout.execute(output.refreshToken)
-    } catch (e: Exception) {
-        println(e.message)
-    }
+    /**
+     * http://localhost:8081/auth?response_type=code&redirect_uri=localhost:8082/select_contract
+     */
 }

@@ -1,0 +1,16 @@
+{
+    "contracts": [
+        {
+            "id": "7dbcd604-4632-4a8e-9733-d8c8df2b37b9",
+            "matricula": "20250001",
+            "position": "Software Engineer",
+            "department": "IT"
+        },
+        {
+            "id": "65eb16ad-710a-48ef-af9f-3e7a7e6a5f8e",
+            "matricula": "20250002",
+            "position": "Data Analyst",
+            "department": "Analytics"
+        }
+    ]
+}

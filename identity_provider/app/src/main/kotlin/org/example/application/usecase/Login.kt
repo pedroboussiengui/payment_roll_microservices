@@ -1,5 +1,6 @@
 package org.example.application.usecase
 
+import kotlinx.serialization.Serializable
 import org.example.application.service.JWTService
 import org.example.domain.UserNotFoundException
 import org.example.infra.hash.PasswordHash
@@ -37,6 +38,7 @@ data class LoginInput(
     val password: String
 )
 
+@Serializable
 data class LoginOutput(
     val type: String,
     val token: String
