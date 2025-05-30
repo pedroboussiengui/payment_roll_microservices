@@ -28,14 +28,10 @@ dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
 
-    implementation("com.auth0:java-jwt:4.5.0") // jwt utility
-    implementation("com.password4j:password4j:1.8.2") // password hash
-    implementation("org.slf4j:slf4j-simple:2.0.17")
-    implementation("redis.clients:jedis:5.2.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation("org.slf4j:slf4j-simple:2.0.17")
     implementation("io.ktor:ktor-server-core:3.1.1")
     implementation("io.ktor:ktor-server-netty:3.1.1")
-    implementation("io.ktor:ktor-server-html-builder:3.1.1")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.1")
     implementation("io.ktor:ktor-server-content-negotiation:3.1.1")
     implementation("io.ktor:ktor-server-cors:3.1.1")
