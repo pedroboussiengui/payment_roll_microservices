@@ -8,7 +8,7 @@
 
         if (token) {
             localStorage.setItem("token", token);
-            goto("/home")
+            goto("/contracts")
         } else {
             console.log("erro ao obter token no callback")
             window.location.href = 'http://localhost:8080/auth';
