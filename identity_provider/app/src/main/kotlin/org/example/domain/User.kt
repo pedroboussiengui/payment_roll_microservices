@@ -29,6 +29,22 @@ data class User(
                 createdAt = Instant.now()
             )
         }
+
+        fun createWithId(
+            userId: UUID,
+            username: String,
+            password: String,
+            email: String,
+        ): User {
+            return User(
+                userId = userId,
+                username = username,
+                password = password,
+                email = email,
+                status = UserStatus.active,
+                createdAt = Instant.now()
+            )
+        }
     }
 
     fun addContract(contractId: UUID) {

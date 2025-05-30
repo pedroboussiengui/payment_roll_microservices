@@ -1,5 +1,6 @@
 package org.example.application.usecase
 
+import kotlinx.serialization.Serializable
 import org.example.application.service.JWTService
 import org.example.domain.UserNotFoundByIdException
 import org.example.infra.hash.PasswordHash
@@ -25,7 +26,7 @@ class SetUserContract(
         val user = userRepository.findById(UUID.fromString(userId))
             ?: throw UserNotFoundByIdException(userId)
         if (!user.contracts.contains(UUID.fromString(input.contractId ))) {
-            Exception("Invalid contract to set")
+            throw Exception("Invalid contract to set")
         }
         val accessToken = jwtService.generateAccessToken(user, input.contractId)
 
@@ -48,11 +49,13 @@ class SetUserContract(
     }
 }
 
+@Serializable
 data class SetUserContractInput(
     val partialToken: String,
     val contractId: String
 )
 
+@Serializable
 data class SetUserContractOutput(
     val sessionId: String,
     val accessToken: String,

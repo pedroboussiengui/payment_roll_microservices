@@ -3,9 +3,11 @@
  */
 package org.example
 
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.install
+import io.ktor.server.application.log
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.html.respondHtml
 import io.ktor.server.netty.Netty
@@ -48,6 +50,14 @@ import org.example.infra.repository.InMemoryUserRepository
 import java.util.UUID
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.request.receive
+import kotlinx.serialization.Serializable
+import org.example.application.usecase.UserRegistrationWithIdInput
+
+@Serializable
+data class LogoutInput(
+    val refreshToken: String
+)
 
 fun main() {
     val userRepository = InMemoryUserRepository()
@@ -64,8 +74,14 @@ fun main() {
     val refreshToken = RefreshToken(userRepository, inMemoryDao, passwordHash)
 
     userRegistration.execute(
-        UserRegistrationInput("pedroteste", "12345", "pedro@email.com")
+        UserRegistrationWithIdInput(
+            "805a852d-61e8-4a07-9e1f-02141ae74e94",
+            "pedroteste",
+            "12345",
+            "pedro@email.com")
     )
+
+    addUserContract.execute("805a852d-61e8-4a07-9e1f-02141ae74e94", "0042d963-6c54-4c9f-a60c-bfcde866d29e")
 
     embeddedServer(Netty, port = 8080) {
         install(ContentNegotiation) {
@@ -73,6 +89,9 @@ fun main() {
         }
         install(CORS) {
             anyHost()
+            anyMethod()
+            allowHeader(HttpHeaders.ContentType)
+            allowHeader(HttpHeaders.Authorization)
         }
         routing {
             get("/auth") {
@@ -111,8 +130,45 @@ fun main() {
                     call.respondRedirect("/auth?error=1")
                 }
             }
+            get("/users/set-contract/{contractId}") {
+                val contractId = call.parameters["contractId"]
+                val partialToken = call.request.headers["Authorization"]
+
+                if (partialToken == null) {
+                    call.respond(HttpStatusCode.Unauthorized)
+                    return@get
+                }
+
+                if (contractId == null) {
+                    call.respond(HttpStatusCode.BadRequest)
+                    return@get
+                }
+                try {
+                    val input = SetUserContractInput(partialToken, contractId)
+                    val output = setUserContract.execute(input)
+                    call.respond(HttpStatusCode.OK, output)
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.Unauthorized)
+                }
+            }
+            post("/logout") {
+                val input = call.receive<LogoutInput>()
+                logout.execute(input.refreshToken)
+                call.respond(HttpStatusCode.NoContent)
+            }
+            post("/refresh-tokens") {
+                val input = call.receive<RefreshTokenInput>()
+                try {
+                    val output = refreshToken.execute(input)
+                    call.respond(HttpStatusCode.OK, output)
+                } catch (e: Exception) {
+                    log.error(e.message)
+                    call.respond(HttpStatusCode.Unauthorized)
+                }
+            }
         }
     }.start(wait = true)
+
 
 
 //    val output = userRegistration.execute(

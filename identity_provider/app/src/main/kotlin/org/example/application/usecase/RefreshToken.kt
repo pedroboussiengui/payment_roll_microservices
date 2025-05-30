@@ -1,5 +1,6 @@
 package org.example.application.usecase
 
+import kotlinx.serialization.Serializable
 import org.example.application.service.JWTService
 import org.example.domain.UserNotFoundByIdException
 import org.example.infra.hash.PasswordHash
@@ -56,10 +57,12 @@ class RefreshToken(
     }
 }
 
+@Serializable
 data class RefreshTokenInput(
     val refreshToken: String
 )
 
+@Serializable
 data class RefreshTokenOutput(
     val sessionId: String,
     val accessToken: String,

@@ -78,6 +78,7 @@ class JWTService {
             verifier.verify(token)
             true
         } catch (ex: JWTVerificationException) {
+            println(ex.message)
             false
         }
     }

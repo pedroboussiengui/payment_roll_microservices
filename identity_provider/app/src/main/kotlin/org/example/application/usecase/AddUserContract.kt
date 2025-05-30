@@ -9,9 +9,9 @@ import java.util.*
 class AddUserContract(
     val userRepository: UserRepository
 ) {
-    fun execute(input: String, contractId: String): AddUserContractOutput {
-        val user = userRepository.findById(UUID.fromString(input))
-            ?: throw UserNotFoundByIdException(input)
+    fun execute(userId: String, contractId: String): AddUserContractOutput {
+        val user = userRepository.findById(UUID.fromString(userId))
+            ?: throw UserNotFoundByIdException(userId)
         user.addContract(UUID.fromString(contractId))
         userRepository.save(user)
         return AddUserContractOutput(
