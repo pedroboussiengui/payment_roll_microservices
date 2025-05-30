@@ -39,6 +39,7 @@ enum class ContractType { celetista, estagiario, temporario }
 data class Contract(
     @Serializable(with = UUIDSerializer::class)
     val id: UUID,
+    val matricula: String,
     @Serializable(with = LocalDateSerializer::class)
     val entryDate: LocalDate,
     val contractType: ContractType,
@@ -60,6 +61,7 @@ fun main() {
     employee.addContract(
         Contract(
             UUID.fromString("0042d963-6c54-4c9f-a60c-bfcde866d29e"),
+            "2025001",
             LocalDate.of(2025, 1, 1),
             ContractType.celetista,
             "Software Engineer",
@@ -71,6 +73,7 @@ fun main() {
     employee.addContract(
         Contract(
             UUID.fromString("97c4b37c-b652-42f5-836e-e279f189e802"),
+            "2025002",
             LocalDate.of(2024, 1, 1),
             ContractType.temporario,
             "Project Manager",
