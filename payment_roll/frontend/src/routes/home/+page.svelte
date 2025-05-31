@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { decodeJwt } from '$lib/utils/jwt';
     import Navbar from '../../components/navbar.svelte';
-    import { IdentityProviderHttpGateway } from '../../infra/ContractHttpGateway';
+    import { IdentityProviderHttpGateway } from '../../infra/IdentityProviderHttpGateway';
     
     const identityProviderGateway = new IdentityProviderHttpGateway()
 
@@ -33,10 +33,18 @@
         if (!refreshToken) {
             window.location.href = 'http://localhost:8080/auth';
         }
-        sessionTokens = await identityProviderGateway.refreshTokens(refreshToken!!)
-        localStorage.setItem('accessToken', sessionTokens.accessToken);
-        localStorage.setItem('refreshToken', sessionTokens.refreshToken);
-        localStorage.setItem('sessionId', sessionTokens.sessionId);
+        try {
+            sessionTokens = await identityProviderGateway.refreshTokens(refreshToken!!)
+            localStorage.setItem('accessToken', sessionTokens.accessToken);
+            localStorage.setItem('refreshToken', sessionTokens.refreshToken);
+            localStorage.setItem('sessionId', sessionTokens.sessionId);
+        } catch (e) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('sessionId');
+            localStorage.removeItem('refreshToken');
+            window.location.href = 'http://localhost:8080/auth';
+        }
     }
 </script>
 

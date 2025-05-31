@@ -34,7 +34,9 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:3.1.1")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.1")
     implementation("io.ktor:ktor-server-content-negotiation:3.1.1")
+    implementation("io.ktor:ktor-server-status-pages:3.1.1")
     implementation("io.ktor:ktor-server-cors:3.1.1")
+    implementation("com.auth0:java-jwt:4.5.0") // jwt utility
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

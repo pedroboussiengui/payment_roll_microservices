@@ -10,6 +10,7 @@ interface InMemoryDao<T> {
     fun save(key: String, value: T)
     fun get(key: String): T?
     fun delete(key: String)
+    fun getWithTTL(key: String): SessionWithTTL?
 }
 
 @Serializable
@@ -19,6 +20,16 @@ data class Session(
     var refreshTokenHash: String,
     var refreshedAt: String? = null,
     val expiresAt: String
+)
+
+@Serializable
+data class SessionWithTTL(
+    val sessionId: String,
+    val userId: String,
+    var refreshTokenHash: String,
+    var refreshedAt: String? = null,
+    val expiresAt: String,
+    var ttl: Long
 )
 
 class RedisInMemoryDao(
@@ -35,7 +46,10 @@ class RedisInMemoryDao(
     }
 
     override fun save(key: String, value: Session) {
-        jedis.set(key, json.encodeToString(value))
+        val ttl = jedis.ttl(key)
+        if (ttl > 0) {
+            jedis.setex(key, ttl, json.encodeToString(value))
+        }
     }
 
     override fun get(key: String): Session? {
@@ -45,5 +59,20 @@ class RedisInMemoryDao(
 
     override fun delete(key: String) {
         jedis.del(key)
+    }
+
+    override fun getWithTTL(key: String): SessionWithTTL? {
+        val sessionEncoded = jedis.get(key)?: return null
+        val ttl = jedis.ttl(key)
+        val session = json.decodeFromString<Session>(sessionEncoded)
+        val sessionWithTTL = SessionWithTTL(
+            sessionId = session.sessionId,
+            userId = session.userId,
+            refreshTokenHash = session.refreshTokenHash,
+            refreshedAt = session.refreshedAt,
+            expiresAt = session.expiresAt,
+            ttl = ttl
+        )
+        return sessionWithTTL
     }
 }

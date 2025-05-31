@@ -1,15 +1,4 @@
 
-export class ContractHttpGateway {
-    private readonly baseUrl: string = 'http://localhost:8081'
-
-    async listAll(userId: string) {
-        const response = await fetch(`${this.baseUrl}/employees/${userId}/contracts`)
-        const data =  await response.json()
-        console.log(data);
-        return data
-    }
-}
-
 export class IdentityProviderHttpGateway {
     private readonly baseUrl: string = 'http://localhost:8080'
 
@@ -49,7 +38,17 @@ export class IdentityProviderHttpGateway {
             })
         });
         if (response.status === 401) {
-            throw new Error("Unauthorized");
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch {
+                errorData = { title: 'Unknown error', status: response.status };
+            }
+            throw {
+                status: response.status,
+                title: errorData.title,
+                detail: errorData.detail
+            }
         }
         console.log(response); 
         const data = await response.json()

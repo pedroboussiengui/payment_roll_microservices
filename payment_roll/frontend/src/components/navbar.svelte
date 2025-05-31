@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { IdentityProviderHttpGateway } from "../infra/ContractHttpGateway";
+    import { IdentityProviderHttpGateway } from "../infra/IdentityProviderHttpGateway";
 
     const identityProviderGateway = new IdentityProviderHttpGateway();
 

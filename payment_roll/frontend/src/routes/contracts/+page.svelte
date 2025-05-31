@@ -1,10 +1,11 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { ContractHttpGateway, IdentityProviderHttpGateway } from "../../infra/ContractHttpGateway";
+    import { PayrollHttpGateway } from "../../infra/PayrollHttpGateway";
     import { decodeJwt } from "$lib/utils/jwt";
     import { goto } from "$app/navigation";
+    import { IdentityProviderHttpGateway } from "../../infra/IdentityProviderHttpGateway";
     
-    const gateway = new ContractHttpGateway();
+    const payrollHttpGateway = new PayrollHttpGateway();
     const identityProviderGateway = new IdentityProviderHttpGateway();
 
     let userToken: string | null = null;
@@ -29,14 +30,17 @@
     let sessionTokens: SetContractResponse;
 
     onMount(async () => {
-        userToken = localStorage.getItem('token');
+        userToken = localStorage.getItem("accessToken")
+        if (!userToken) {
+            userToken = localStorage.getItem('token');
+        }
         if (!userToken) {
             window.location.href = 'http://localhost:8080/auth';
         }
         const payload = decodeJwt(userToken!!)
         const userId = payload.sub;
         try {
-            contracts = await gateway.listAll(userId);
+            contracts = await payrollHttpGateway.listAll(userId, userToken!!);
         } catch (error) {
             console.error("Error fetching contracts:", error);
             window.location.href = 'http://localhost:8080/auth';

@@ -52,11 +52,19 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.request.receive
 import kotlinx.serialization.Serializable
+import org.example.application.usecase.GetSession
 import org.example.application.usecase.UserRegistrationWithIdInput
 
 @Serializable
 data class LogoutInput(
     val refreshToken: String
+)
+
+@Serializable
+data class Problem(
+    val title: String,
+    val detail: String,
+    val status: Int
 )
 
 fun main() {
@@ -72,6 +80,7 @@ fun main() {
     val logout = Logout(inMemoryDao)
     val retrieveSessionByID = RetrieveSessionByID(inMemoryDao)
     val refreshToken = RefreshToken(userRepository, inMemoryDao, passwordHash)
+    val getSession = GetSession(inMemoryDao)
 
     userRegistration.execute(
         UserRegistrationWithIdInput(
@@ -163,8 +172,28 @@ fun main() {
                     call.respond(HttpStatusCode.OK, output)
                 } catch (e: Exception) {
                     log.error(e.message)
-                    call.respond(HttpStatusCode.Unauthorized)
+                    call.respond(
+                        HttpStatusCode.Unauthorized,
+                        Problem(
+                            title = "Unauthorized",
+                            detail = e.message ?: "Invalid refresh token",
+                            status = HttpStatusCode.Unauthorized.value
+                        )
+                    )
                 }
+            }
+            get("/sessions/{sessionId}") {
+                val sessionId = call.parameters["sessionId"]
+                if (sessionId == null) {
+                    call.respond(HttpStatusCode.BadRequest)
+                    return@get
+                }
+                val output = getSession.execute(sessionId)
+                if (output == null) {
+                    call.respond(HttpStatusCode.NotFound)
+                    return@get
+                }
+                call.respond(HttpStatusCode.OK, output)
             }
         }
     }.start(wait = true)

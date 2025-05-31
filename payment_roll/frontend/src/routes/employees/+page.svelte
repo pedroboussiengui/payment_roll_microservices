@@ -2,12 +2,47 @@
     import { onMount } from "svelte";
     import { PayrollHttpGateway, type Employee } from "../../infra/PayrollHttpGateway";
     import Navbar from "../../components/navbar.svelte";
+    import { IdentityProviderHttpGateway } from "../../infra/IdentityProviderHttpGateway";
 
     const payrollHttpGateway = new PayrollHttpGateway();
+    const identityProviderGateway = new IdentityProviderHttpGateway();
+    
     let employees: Employee[] = []
 
+    const accessToken = localStorage.getItem("accessToken")
+    const refreshToken = localStorage.getItem("refreshToken")
+
+    type SessionTokens = {
+        sessionId: string,
+        accessToken: string,
+        refreshToken: string
+    }
+    let sessionTokens: SessionTokens;
+
     onMount(async () => {
-        employees = await payrollHttpGateway.getAllEmployees();
+        if (!accessToken) {
+            window.location.href = 'http://localhost:8080/auth';
+        }
+        // employees = await withAuthRetry(tk => payrollHttpGateway.getAllEmployees(tk), accessToken!!);
+        try {
+            employees = await payrollHttpGateway.getAllEmployees(accessToken!!)
+        } catch(e: any) {
+            console.error('Error in list employees: ', e)
+            if (e.status === 401) {
+                try {
+                    sessionTokens = await identityProviderGateway.refreshTokens(refreshToken!!)
+                    localStorage.setItem('accessToken', sessionTokens.accessToken);
+                    localStorage.setItem('refreshToken', sessionTokens.refreshToken);
+                    localStorage.setItem('sessionId', sessionTokens.sessionId);
+
+                    const newAccessToken = localStorage.getItem("accessToken")
+                    employees = await payrollHttpGateway.getAllEmployees(newAccessToken!!)
+                } catch(e: any) {
+                    console.error('Error in refresh tokens: ', e)
+                    window.location.href = 'http://localhost:8080/auth';
+                }
+            }
+        }
     });
 
 </script>

@@ -25,12 +25,8 @@ export class PayrollHttpGateway {
         return await response.json()
     }
 
-    async listAll(userId: string, token: string) {
-        const response = await fetch(`${this.baseUrl}/employees/${userId}/contracts`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            }
-        }); 
+    async listAll(userId: string) {
+        const response = await fetch(`${this.baseUrl}/employees/${userId}/contracts`)
         const data =  await response.json()
         console.log(data);
         return data

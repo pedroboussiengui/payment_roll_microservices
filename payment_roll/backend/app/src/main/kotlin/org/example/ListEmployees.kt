@@ -1,13 +1,18 @@
 package org.example
 
 import kotlinx.serialization.Serializable
+import org.example.jwt.JwtService
 import java.time.LocalDate
 import java.util.UUID
 
 class ListEmployees(
     private val employeeDao: EmployeeDao
 ) {
-    fun execute(): List<ListEmployeeByIDOutput> {
+    private val jwtService = JwtService()
+    fun execute(accessToken: String): List<ListEmployeeByIDOutput> {
+        if (!jwtService.isValid(accessToken)) {
+            throw AuthenticationFailedException("Invalid token")
+        }
         val output = mutableListOf<ListEmployeeByIDOutput>()
         employeeDao.findAll().map { employee ->
             output.add(
@@ -23,6 +28,7 @@ class ListEmployees(
     }
 }
 
+class AuthenticationFailedException(message: String) : RuntimeException(message)
 
 @Serializable
 data class ListEmployeeByIDOutput(
