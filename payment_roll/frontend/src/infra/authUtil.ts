@@ -6,10 +6,6 @@ export async function withAuthRetry<T>(fn: (token: string) => Promise<T>, access
         if (e instanceof Error) {
             console.log(e);
         }
-        // if (e instanceof Error && e.message === 'Unauthorized') {
-        //     const newAccessToken = await refreshToken();
-        //     return await fn(newAccessToken)
-        // }
         throw e;
     }    
 }

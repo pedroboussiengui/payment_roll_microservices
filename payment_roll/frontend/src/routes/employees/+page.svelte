@@ -1,55 +1,82 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { PayrollHttpGateway, type Employee } from "../../infra/PayrollHttpGateway";
+    import { PayrollHttpGateway } from "$lib/infra/http/PayrollHttpClient";
+    import { IdentityProviderHttpGateway } from "$lib/infra/http/IdentityProviderHttpGateway";
+    import { RefreshToken } from "$lib/application/RefreshToken";
+    import { ListEmployee } from "$lib/application/employee/ListEmployee";
+    import type { Employee, SessionTokens } from "$lib/utils/types";
+    import { TokenStorage } from "$lib/infra/storage/TokenStorage";
     import Navbar from "../../components/navbar.svelte";
-    import { IdentityProviderHttpGateway } from "../../infra/IdentityProviderHttpGateway";
 
     const payrollHttpGateway = new PayrollHttpGateway();
     const identityProviderGateway = new IdentityProviderHttpGateway();
+
+    const refreshToken = new RefreshToken()
+    const listEmployees = new ListEmployee()
     
     let employees: Employee[] = []
 
-    const accessToken = localStorage.getItem("accessToken")
-    const refreshToken = localStorage.getItem("refreshToken")
-
-    type SessionTokens = {
-        sessionId: string,
-        accessToken: string,
-        refreshToken: string
-    }
-    let sessionTokens: SessionTokens;
-
     onMount(async () => {
+        const accessToken = TokenStorage.getAccessToken();
         if (!accessToken) {
-            window.location.href = 'http://localhost:8080/auth';
+            try {
+                const sessionTokens = await refreshToken.execute();
+                TokenStorage.setTokens(sessionTokens);
+            } catch(e) {
+                window.location.href = 'http://localhost:8080/auth';
+            }
         }
-        // employees = await withAuthRetry(tk => payrollHttpGateway.getAllEmployees(tk), accessToken!!);
         try {
-            employees = await payrollHttpGateway.getAllEmployees(accessToken!!)
+            employees = await listEmployees.execute(accessToken!!)
         } catch(e: any) {
             console.error('Error in list employees: ', e)
             if (e.status === 401) {
                 try {
-                    sessionTokens = await identityProviderGateway.refreshTokens(refreshToken!!)
-                    localStorage.setItem('accessToken', sessionTokens.accessToken);
-                    localStorage.setItem('refreshToken', sessionTokens.refreshToken);
-                    localStorage.setItem('sessionId', sessionTokens.sessionId);
-
-                    const newAccessToken = localStorage.getItem("accessToken")
-                    employees = await payrollHttpGateway.getAllEmployees(newAccessToken!!)
+                    const sessionTokens = await refreshToken.execute();
+                    TokenStorage.setTokens(sessionTokens);
+                    const accessToken = TokenStorage.getAccessToken();
+                    employees = await listEmployees.execute(accessToken!!)
                 } catch(e: any) {
                     console.error('Error in refresh tokens: ', e)
+                    TokenStorage.clearTokens();
                     window.location.href = 'http://localhost:8080/auth';
                 }
             }
         }
     });
 
+
+    // onMount(async () => {
+    //     if (!accessToken) {
+    //         window.location.href = 'http://localhost:8080/auth';
+    //     }
+    //     // employees = await withAuthRetry(tk => payrollHttpGateway.getAllEmployees(tk), accessToken!!);
+    //     try {
+    //         employees = await payrollHttpGateway.getAllEmployees(accessToken!!)
+    //     } catch(e: any) {
+    //         console.error('Error in list employees: ', e)
+    //         if (e.status === 401) {
+    //             try {
+    //                 sessionTokens = await identityProviderGateway.refreshTokens(refreshToken!!)
+    //                 localStorage.setItem('accessToken', sessionTokens.accessToken);
+    //                 localStorage.setItem('refreshToken', sessionTokens.refreshToken);
+    //                 localStorage.setItem('sessionId', sessionTokens.sessionId);
+
+    //                 const newAccessToken = localStorage.getItem("accessToken")
+    //                 employees = await payrollHttpGateway.getAllEmployees(newAccessToken!!)
+    //             } catch(e: any) {
+    //                 console.error('Error in refresh tokens: ', e)
+    //                 window.location.href = 'http://localhost:8080/auth';
+    //             }
+    //         }
+    //     }
+    // });
+
 </script>
 
-<h2>Employees registries</h2>
-
 <Navbar />
+
+<h2>Employees registries</h2>
 
 <table border="1" cellpadding="8" cellspacing="0">
     <thead>

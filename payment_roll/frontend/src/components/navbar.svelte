@@ -1,18 +1,16 @@
 <script lang="ts">
-    import { IdentityProviderHttpGateway } from "../infra/IdentityProviderHttpGateway";
+    import { IdentityProviderHttpGateway } from "$lib/infra/http/IdentityProviderHttpGateway";
+    import { TokenStorage } from "$lib/infra/storage/TokenStorage";
 
     const identityProviderGateway = new IdentityProviderHttpGateway();
 
     async function logout() {
-        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshToken = TokenStorage.getRefreshToken();
         if (!refreshToken) {
             window.location.href = 'http://localhost:8080/auth';
         }
         await identityProviderGateway.logout(refreshToken!!);
-        localStorage.removeItem('token');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('sessionId');
-        localStorage.removeItem('refreshToken');
+        TokenStorage.clearTokens();
         window.location.href = 'http://localhost:8080/auth';
     }
 </script>

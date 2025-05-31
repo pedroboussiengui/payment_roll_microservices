@@ -1,5 +1,6 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
+    import { TokenStorage } from "$lib/infra/storage/TokenStorage";
     import { onMount } from "svelte";
 
     onMount(() => {
@@ -7,8 +8,8 @@
         const token = urlParams.get("token");
 
         if (token) {
-            localStorage.setItem("token", token);
-            goto("/contracts")
+            TokenStorage.setPartialToken(token);
+            goto("/contracts");
         } else {
             console.log("erro ao obter token no callback")
             window.location.href = 'http://localhost:8080/auth';

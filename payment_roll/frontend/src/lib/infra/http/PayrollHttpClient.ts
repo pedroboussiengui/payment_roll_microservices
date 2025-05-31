@@ -1,3 +1,4 @@
+import type { Contract, Employee } from "$lib/utils/types";
 
 export class PayrollHttpGateway {
     private readonly baseUrl: string = 'http://localhost:8081/'
@@ -5,7 +6,7 @@ export class PayrollHttpGateway {
     async getAllEmployees(accessToken: string): Promise<Employee[]> {
         const response = await fetch(`${this.baseUrl}/employees`, {
             headers: {
-                'Authorization': `${accessToken}`
+                'Authorization': `Bearer ${accessToken}`
             }
         })
         if (!response.ok) {
@@ -25,17 +26,12 @@ export class PayrollHttpGateway {
         return await response.json()
     }
 
-    async listAll(userId: string) {
-        const response = await fetch(`${this.baseUrl}/employees/${userId}/contracts`)
-        const data =  await response.json()
-        console.log(data);
-        return data
+    async listUserContracts(userId: string, token: string): Promise<Contract[]> {
+        const response = await fetch(`${this.baseUrl}/employees/${userId}/contracts`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            }
+        }); 
+        return await response.json()
     }
-}
-
-export type Employee = {
-    id: string,
-    name: string,
-    document: string,
-    birthDate: string
 }

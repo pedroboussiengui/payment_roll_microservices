@@ -13,6 +13,9 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.Serializable
 
+/**
+ * RFC 9457 - “Problem Details for HTTP APIs”
+ */
 @Serializable
 data class Problem(
     val title: String,

@@ -195,6 +195,14 @@ fun main() {
                 }
                 call.respond(HttpStatusCode.OK, output)
             }
+            get("/health") {
+                try {
+                    RedisConnection.jedis.ping()
+                    call.respond(HttpStatusCode.OK)
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.ServiceUnavailable, "Redis is not available")
+                }
+            }
         }
     }.start(wait = true)
 

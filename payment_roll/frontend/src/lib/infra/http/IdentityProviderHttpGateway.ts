@@ -1,3 +1,4 @@
+import type { SessionTokens } from "$lib/utils/types";
 
 export class IdentityProviderHttpGateway {
     private readonly baseUrl: string = 'http://localhost:8080'
@@ -27,7 +28,7 @@ export class IdentityProviderHttpGateway {
         }); 
     }
 
-    async refreshTokens(refreshToken: string) {
+    async refreshTokens(refreshToken: string): Promise<SessionTokens> {
         const response = await fetch(`${this.baseUrl}/refresh-tokens`, {
             method: 'POST',
             headers: {

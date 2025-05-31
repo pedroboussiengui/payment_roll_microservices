@@ -25,9 +25,9 @@ class JWTService {
     // HMAC256 - symmetric key
     private val algorithm = Algorithm.HMAC256(SECRET_KEY) // RFC 7515: JSON Web Signature (JWS)
     private val issuer = "identity_provider"
-    private val partialTokenExpiration: Long = 60 * 1 // 5 mim
-    private val accessTokenExpiration: Long = 20 // 1 min
-    private val refreshTokenExpiration: Long = 60 * 1 // 5 min
+    private val partialTokenExpiration: Long = 60 * 5 // 5 mim
+    private val accessTokenExpiration: Long = 40 // 5 min
+    private val refreshTokenExpiration: Long = 120 // 30 min
     private val verifier = JWT.require(algorithm)
         .withIssuer(issuer)
         .build()
