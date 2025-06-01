@@ -6,10 +6,6 @@
     import { TokenStorage } from "$lib/infra/storage/TokenStorage";
     import payroll from "$lib/payroll_api";
     import idp from "$lib/idp_api";
-    
-    // const identityProviderGateway = new IdentityProviderHttpGateway();
-
-    // const listUserContracts = new ListUserContracts()
 
     let contracts: Contract[] = []
 
@@ -26,25 +22,10 @@
         }
     });
 
-    // onMount(async () => {
-    //     token = TokenStorage.getAccessToken() ?? TokenStorage.getPartialToken();
-
-    //     const payload = decodeJwt(token!!)
-    //     const userId = payload.sub;
-    //     try {
-    //         contracts = await listUserContracts.execute(userId, token!!);
-    //     } catch (error) {
-    //         console.error("Error fetching contracts:", error);
-    //         window.location.href = 'http://localhost:8080/auth';
-    //     }
-    // });
-
     async function setContract(contractId: string) {
         try {
             const res = await idp.get(`/users/set-contract/${contractId}`);
-            console.log(res);
             const sessionTokens = res.data as SessionTokens;
-            console.log(sessionTokens);
             TokenStorage.setTokens(sessionTokens);
             goto("/home")
         } catch (error) {
