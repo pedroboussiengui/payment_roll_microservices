@@ -1,7 +1,10 @@
 <script lang="ts">
-    import { redirect } from "@sveltejs/kit";
+    import { goto } from "$app/navigation";
 
-    export const load = () => {
-        throw redirect(302, "/home");
-    }
+    // import { redirect } from "@sveltejs/kit";
+
+    // export const load = () => {
+    //     throw redirect(302, "/home");
+    // }
+    goto("/home")
 </script>

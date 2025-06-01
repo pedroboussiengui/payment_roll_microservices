@@ -11,6 +11,7 @@ import io.ktor.server.application.log
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.html.respondHtml
 import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
@@ -54,6 +55,7 @@ import io.ktor.server.request.receive
 import kotlinx.serialization.Serializable
 import org.example.application.usecase.GetSession
 import org.example.application.usecase.UserRegistrationWithIdInput
+import kotlin.properties.Delegates
 
 @Serializable
 data class LogoutInput(
@@ -142,6 +144,13 @@ fun main() {
             get("/users/set-contract/{contractId}") {
                 val contractId = call.parameters["contractId"]
                 val partialToken = call.request.headers["Authorization"]
+                val useCookiesParam = call.request.queryParameters["cookies"]
+                val useCookies = when (useCookiesParam) {
+                    null -> false
+                    "true" -> true
+                    "false" -> false
+                    else -> throw BadRequestException("Invalid value for 'cookies'. Use 'true' or 'false'.")
+                }
 
                 if (partialToken == null) {
                     call.respond(HttpStatusCode.Unauthorized)
@@ -155,7 +164,23 @@ fun main() {
                 try {
                     val input = SetUserContractInput(partialToken, contractId)
                     val output = setUserContract.execute(input)
-                    call.respond(HttpStatusCode.OK, output)
+
+                    if (useCookies) {
+                        call.response.cookies.append(
+                            "refreshToken",
+                            output.refreshToken,
+                            path = "/",
+                            httpOnly = true,
+                            secure = false,
+                            maxAge = 3600
+                        )
+                        call.respond(HttpStatusCode.OK, mapOf(
+                            "sessionId" to output.sessionId,
+                            "accessToken" to output.accessToken
+                        ))
+                    } else {
+                        call.respond(HttpStatusCode.OK, output)
+                    }
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.Unauthorized)
                 }
@@ -167,9 +192,31 @@ fun main() {
             }
             post("/refresh-tokens") {
                 val input = call.receive<RefreshTokenInput>()
+                val useCookiesParam = call.request.queryParameters["cookies"]
+                val useCookies = when (useCookiesParam) {
+                    null -> false
+                    "true" -> true
+                    "false" -> false
+                    else -> throw BadRequestException("Invalid value for 'cookies'. Use 'true' or 'false'.")
+                }
                 try {
                     val output = refreshToken.execute(input)
-                    call.respond(HttpStatusCode.OK, output)
+                    if (useCookies) {
+                        call.response.cookies.append(
+                            "refreshToken",
+                            output.refreshToken,
+                            path = "/",
+                            httpOnly = true,
+                            secure = false,
+                            maxAge = 3600
+                        )
+                        call.respond(HttpStatusCode.OK, mapOf(
+                            "sessionId" to output.sessionId,
+                            "accessToken" to output.accessToken
+                        ))
+                    } else {
+                        call.respond(HttpStatusCode.OK, output)
+                    }
                 } catch (e: Exception) {
                     log.error(e.message)
                     call.respond(
