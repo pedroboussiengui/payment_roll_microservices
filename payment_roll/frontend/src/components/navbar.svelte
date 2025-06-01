@@ -1,17 +1,16 @@
 <script lang="ts">
-    import { IdentityProviderHttpGateway } from "$lib/infra/http/IdentityProviderHttpGateway";
+    import { logout } from "$lib/auth";
+    import idp from "$lib/idp_api";
     import { TokenStorage } from "$lib/infra/storage/TokenStorage";
 
-    const identityProviderGateway = new IdentityProviderHttpGateway();
-
-    async function logout() {
+    async function endSession() {
         const refreshToken = TokenStorage.getRefreshToken();
-        if (!refreshToken) {
-            window.location.href = 'http://localhost:8080/auth';
+        if (refreshToken) {
+            await idp.post("/refresh-tokens", {
+                refreshToken: refreshToken
+            });
         }
-        await identityProviderGateway.logout(refreshToken!!);
-        TokenStorage.clearTokens();
-        window.location.href = 'http://localhost:8080/auth';
+        logout();
     }
 </script>
 
@@ -23,5 +22,5 @@
 </nav>
 
 <div>
-    <button on:click={() => logout()}>Logout</button>
+    <button on:click={() => endSession()}>Logout</button>
 </div>

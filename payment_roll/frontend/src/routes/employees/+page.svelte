@@ -1,77 +1,19 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { PayrollHttpGateway } from "$lib/infra/http/PayrollHttpClient";
-    import { IdentityProviderHttpGateway } from "$lib/infra/http/IdentityProviderHttpGateway";
-    import { RefreshToken } from "$lib/application/RefreshToken";
-    import { ListEmployee } from "$lib/application/employee/ListEmployee";
-    import type { Employee, SessionTokens } from "$lib/utils/types";
-    import { TokenStorage } from "$lib/infra/storage/TokenStorage";
+    import type { Employee } from "$lib/utils/types";
     import Navbar from "../../components/navbar.svelte";
+    import payroll from "$lib/payroll_api";
 
-    const payrollHttpGateway = new PayrollHttpGateway();
-    const identityProviderGateway = new IdentityProviderHttpGateway();
-
-    const refreshToken = new RefreshToken()
-    const listEmployees = new ListEmployee()
-    
     let employees: Employee[] = []
 
     onMount(async () => {
-        const accessToken = TokenStorage.getAccessToken();
-        if (!accessToken) {
-            try {
-                const sessionTokens = await refreshToken.execute();
-                TokenStorage.setTokens(sessionTokens);
-            } catch(e) {
-                window.location.href = 'http://localhost:8080/auth';
-            }
-        }
         try {
-            employees = await listEmployees.execute(accessToken!!)
-        } catch(e: any) {
-            console.error('Error in list employees: ', e)
-            if (e.status === 401) {
-                try {
-                    const sessionTokens = await refreshToken.execute();
-                    TokenStorage.setTokens(sessionTokens);
-                    const accessToken = TokenStorage.getAccessToken();
-                    employees = await listEmployees.execute(accessToken!!)
-                } catch(e: any) {
-                    console.error('Error in refresh tokens: ', e)
-                    TokenStorage.clearTokens();
-                    window.location.href = 'http://localhost:8080/auth';
-                }
-            }
+            const res = await payroll.get('/employees')
+            employees = res.data as Employee[];
+        } catch (err) {
+            console.error('Erro ao carregar funcionários:', err);
         }
     });
-
-
-    // onMount(async () => {
-    //     if (!accessToken) {
-    //         window.location.href = 'http://localhost:8080/auth';
-    //     }
-    //     // employees = await withAuthRetry(tk => payrollHttpGateway.getAllEmployees(tk), accessToken!!);
-    //     try {
-    //         employees = await payrollHttpGateway.getAllEmployees(accessToken!!)
-    //     } catch(e: any) {
-    //         console.error('Error in list employees: ', e)
-    //         if (e.status === 401) {
-    //             try {
-    //                 sessionTokens = await identityProviderGateway.refreshTokens(refreshToken!!)
-    //                 localStorage.setItem('accessToken', sessionTokens.accessToken);
-    //                 localStorage.setItem('refreshToken', sessionTokens.refreshToken);
-    //                 localStorage.setItem('sessionId', sessionTokens.sessionId);
-
-    //                 const newAccessToken = localStorage.getItem("accessToken")
-    //                 employees = await payrollHttpGateway.getAllEmployees(newAccessToken!!)
-    //             } catch(e: any) {
-    //                 console.error('Error in refresh tokens: ', e)
-    //                 window.location.href = 'http://localhost:8080/auth';
-    //             }
-    //         }
-    //     }
-    // });
-
 </script>
 
 <Navbar />

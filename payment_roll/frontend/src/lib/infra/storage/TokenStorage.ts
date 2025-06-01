@@ -8,17 +8,17 @@ export class TokenStorage {
         return localStorage.getItem('refreshToken');
     }
 
-    static getPartialToken(): string | null {
-        return localStorage.getItem('partialToken');
+    // static getPartialToken(): string | null {
+    //     return localStorage.getItem('partialToken');
+    // }
+
+    static setAccessToken(accessToken: string): void {
+        localStorage.setItem('accessToken', accessToken);
     }
 
-    static setPartialToken(partialToken: string): void {
-        localStorage.setItem('partialToken', partialToken);
-    }
-
-    static removePartialToken(): void {
-        localStorage.removeItem('partialToken');
-    }
+    // static removePartialToken(): void {
+    //     localStorage.removeItem('partialToken');
+    // }
 
     static setTokens({ accessToken, refreshToken, sessionId }: { accessToken: string, refreshToken: string, sessionId: string }): void {
         localStorage.setItem('accessToken', accessToken);
@@ -30,6 +30,6 @@ export class TokenStorage {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('sessionId');
-        localStorage.removeItem('partialToken');
+        // localStorage.removeItem('partialToken');
     }
 }

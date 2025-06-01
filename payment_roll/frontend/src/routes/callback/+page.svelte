@@ -5,10 +5,10 @@
 
     onMount(() => {
         const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get("token");
+        const accessToken = urlParams.get("token");
 
-        if (token) {
-            TokenStorage.setPartialToken(token);
+        if (accessToken) {
+            TokenStorage.setAccessToken(accessToken);
             goto("/contracts");
         } else {
             console.log("erro ao obter token no callback")

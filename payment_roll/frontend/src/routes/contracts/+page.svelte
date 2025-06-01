@@ -2,38 +2,49 @@
     import { onMount } from "svelte";
     import { decodeJwt } from "$lib/utils/jwt";
     import { goto } from "$app/navigation";
-    import { IdentityProviderHttpGateway } from "$lib/infra/http/IdentityProviderHttpGateway";
     import type { Contract, SessionTokens } from "$lib/utils/types";
     import { TokenStorage } from "$lib/infra/storage/TokenStorage";
-    import { ListUserContracts } from "$lib/application/employee/ListEmployee";
+    import payroll from "$lib/payroll_api";
+    import idp from "$lib/idp_api";
     
-    const identityProviderGateway = new IdentityProviderHttpGateway();
+    // const identityProviderGateway = new IdentityProviderHttpGateway();
 
-    const listUserContracts = new ListUserContracts()
-
-    let token: string | null = null;
+    // const listUserContracts = new ListUserContracts()
 
     let contracts: Contract[] = []
 
-    let sessionTokens: SessionTokens;
-
     onMount(async () => {
-        token = TokenStorage.getAccessToken() ?? TokenStorage.getPartialToken();
-
-        const payload = decodeJwt(token!!)
-        const userId = payload.sub;
         try {
-            contracts = await listUserContracts.execute(userId, token!!);
+            const payload = decodeJwt()
+            const userId = payload.sub;
+            // contracts = await listUserContracts.execute(userId, token!!);
+            const res = await payroll.get(`/employees/${userId}/contracts`)
+            contracts = res.data as Contract[];
         } catch (error) {
             console.error("Error fetching contracts:", error);
             window.location.href = 'http://localhost:8080/auth';
         }
     });
 
+    // onMount(async () => {
+    //     token = TokenStorage.getAccessToken() ?? TokenStorage.getPartialToken();
+
+    //     const payload = decodeJwt(token!!)
+    //     const userId = payload.sub;
+    //     try {
+    //         contracts = await listUserContracts.execute(userId, token!!);
+    //     } catch (error) {
+    //         console.error("Error fetching contracts:", error);
+    //         window.location.href = 'http://localhost:8080/auth';
+    //     }
+    // });
+
     async function setContract(contractId: string) {
         try {
-            sessionTokens = await identityProviderGateway.setContract(contractId, token!!);
-            TokenStorage.removePartialToken();
+            const res = await idp.get(`/users/set-contract/${contractId}`);
+            console.log(res);
+            const sessionTokens = res.data as SessionTokens;
+            console.log(sessionTokens);
             TokenStorage.setTokens(sessionTokens);
             goto("/home")
         } catch (error) {

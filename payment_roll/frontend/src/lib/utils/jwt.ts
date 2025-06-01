@@ -1,3 +1,4 @@
+import { TokenStorage } from "$lib/infra/storage/TokenStorage";
 import { jwtDecode } from "jwt-decode";
 
 export interface JwtPayload {
@@ -7,6 +8,10 @@ export interface JwtPayload {
     contract_id: string
 }
 
-export function decodeJwt(token: string): JwtPayload {
-    return jwtDecode(token);
+export function decodeJwt(): JwtPayload {
+    const accessToken = TokenStorage.getAccessToken();
+    if (!accessToken) {
+        throw new Error("No access token found");
+    }
+    return jwtDecode(accessToken);
 }

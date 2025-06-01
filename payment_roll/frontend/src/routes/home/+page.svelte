@@ -2,18 +2,16 @@
     import { onMount } from 'svelte';
     import { decodeJwt } from '$lib/utils/jwt';
     import Navbar from '../../components/navbar.svelte';
-    import { TokenStorage } from '$lib/infra/storage/TokenStorage';
 
     let username: string | null = null;
 
     onMount(() => {
-        const accessToken = TokenStorage.getAccessToken();
-        if (!accessToken) {
+        try {
+            const payload = decodeJwt()
+            username = payload.name;
+        } catch(err) {
             window.location.href = 'http://localhost:8080/auth';
-            return
-        }
-        const payload = decodeJwt(accessToken!!)
-        username = payload.name;
+        } 
     });
 </script>
 
