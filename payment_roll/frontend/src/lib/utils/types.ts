@@ -1,8 +1,13 @@
 
+// export type SessionTokens = {
+//     sessionId: string,
+//     accessToken: string,
+//     refreshToken: string
+// }
+
 export type SessionTokens = {
     sessionId: string,
-    accessToken: string,
-    refreshToken: string
+    accessToken: string
 }
 
 export type Employee = {

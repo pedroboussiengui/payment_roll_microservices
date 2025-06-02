@@ -38,6 +38,7 @@ dependencies {
     implementation("io.ktor:ktor-server-html-builder:3.1.1")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.1")
     implementation("io.ktor:ktor-server-content-negotiation:3.1.1")
+    implementation("io.ktor:ktor-server-status-pages:3.1.1")
     implementation("io.ktor:ktor-server-cors:3.1.1")
 }
 

@@ -4,12 +4,12 @@
     import { TokenStorage } from "$lib/infra/storage/TokenStorage";
 
     async function endSession() {
-        const refreshToken = TokenStorage.getRefreshToken();
-        if (refreshToken) {
-            await idp.post("/refresh-tokens", {
-                refreshToken: refreshToken
-            });
-        }
+        // const refreshToken = TokenStorage.getRefreshToken();
+        // if (refreshToken) {
+        //     await idp.post("/refresh-tokens", {
+        //         refreshToken: refreshToken
+        //     });
+        // }
         logout();
     }
 </script>

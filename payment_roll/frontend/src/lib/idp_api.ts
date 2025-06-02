@@ -9,8 +9,10 @@ const idp = axios.create({
 
 // intercept request: add the Bearer access token
 idp.interceptors.request.use((config) => {
-    const accessToken = TokenStorage.getAccessToken();
+    const accessToken = TokenStorage.getToken();
+    console.log(`interceptor token IDP: ${accessToken}`);
     if (accessToken) {
+        // not pass the Bearer
         config.headers.Authorization = `${accessToken}`;
     }
     return config

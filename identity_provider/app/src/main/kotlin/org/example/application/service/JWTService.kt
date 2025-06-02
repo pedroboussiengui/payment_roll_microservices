@@ -2,7 +2,13 @@ package org.example.application.service
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.AlgorithmMismatchException
+import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.exceptions.JWTVerificationException
+import com.auth0.jwt.exceptions.SignatureVerificationException
+import com.auth0.jwt.exceptions.TokenExpiredException
+import com.auth0.jwt.interfaces.DecodedJWT
+import org.example.application.AuthenticationException
 import org.example.domain.User
 import java.time.Instant
 import java.util.Date
@@ -43,7 +49,7 @@ class JWTService {
             .sign(algorithm)
     }
 
-    fun generateAccessToken(user: User, contractId: String): String {
+    fun generateAccessToken(user: User, contractId: String, instant: Instant): String {
         return JWT.create()
             .withIssuer(issuer)
             // issuedAt
@@ -51,7 +57,7 @@ class JWTService {
             .withClaim("type", "access_token")
             .withClaim("name", user.username)
             .withClaim("contract_id", contractId)
-            .withExpiresAt(Instant.now().plusSeconds(accessTokenExpiration))
+            .withExpiresAt(instant.plusSeconds(accessTokenExpiration))
             .sign(algorithm)
     }
 
@@ -61,30 +67,47 @@ class JWTService {
      * - armazenar em memória para poder revogar
      * - expiração maior
      */
-    fun generateRefreshToken(user: User, sessionId: String, contractId: String): String {
+    fun generateRefreshToken(user: User, sessionId: String, contractId: String, instant: Instant): String {
         return JWT.create()
             .withIssuer(issuer)
             .withSubject(user.userId.toString())
             .withClaim("type", "refresh_token")
             .withClaim("session_id", sessionId)
             .withClaim("contract_id", contractId)
-            .withExpiresAt(Instant.now().plusSeconds(refreshTokenExpiration))
+            .withExpiresAt(instant.plusSeconds(refreshTokenExpiration))
             .sign(algorithm)
     }
 
-
-    fun verify(token: String): Boolean {
+    private fun validateAndDecode(token: String): DecodedJWT {
         return try {
-            verifier.verify(token)
+            val jwt = verifier.verify(token)
+            jwt
+        } catch (_: TokenExpiredException) {
+            throw AuthenticationException.ExpiredToken()
+        } catch (_: AlgorithmMismatchException) {
+            throw AuthenticationException.InvalidToken("Algoritmo diferente")
+        } catch (_: SignatureVerificationException) {
+            throw AuthenticationException.InvalidToken("Assinatura inválida")
+        } catch (_: JWTDecodeException) {
+            throw AuthenticationException.InvalidToken("Token mal formado")
+        } catch (_: JWTVerificationException) {
+            throw AuthenticationException.InvalidToken("Erro na verificação")
+        } catch (e: Exception) {
+            throw Exception(e.message)
+        }
+    }
+
+    fun isValid(token: String): Boolean {
+        return try {
+            validateAndDecode(token)
             true
-        } catch (ex: JWTVerificationException) {
-            println(ex.message)
+        } catch (_: AuthenticationException) {
             false
         }
     }
 
-    fun getSubject(token: String): String {
-        return verifier.verify(token).subject
+    fun getSubjectIfValid(token: String): String {
+        return validateAndDecode(token).subject
     }
 
     fun getExpireAt(token: String): Date {

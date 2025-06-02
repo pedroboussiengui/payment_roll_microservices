@@ -1,13 +1,12 @@
 package org.example.infra.redis
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.time.Instant
 
 interface InMemoryDao<T> {
     fun save(key: String, value: T, expiresAt: Long)
-    fun save(key: String, value: T)
+    fun save(key: String, value: T): Long
     fun get(key: String): T?
     fun delete(key: String)
     fun getWithTTL(key: String): SessionWithTTL?
@@ -45,11 +44,12 @@ class RedisInMemoryDao(
         jedis.setex(key, ttlInSeconds, sessionEncoded)
     }
 
-    override fun save(key: String, value: Session) {
+    override fun save(key: String, value: Session): Long {
         val ttl = jedis.ttl(key)
         if (ttl > 0) {
             jedis.setex(key, ttl, json.encodeToString(value))
         }
+        return ttl
     }
 
     override fun get(key: String): Session? {

@@ -1,8 +1,8 @@
 package org.example.application.usecase
 
 import kotlinx.serialization.Serializable
+import org.example.application.AuthenticationException
 import org.example.application.service.JWTService
-import org.example.domain.UserNotFoundException
 import org.example.infra.hash.PasswordHash
 import org.example.infra.repository.UserRepository
 
@@ -12,11 +12,11 @@ class Login(
 ) {
     fun execute(login: LoginInput): LoginOutput {
         val user = userRepository.findByUsername(login.username)
-                        ?: throw UserNotFoundException()
-        val ok = passwordHash.check(login.password, user.password)
+                        ?: throw AuthenticationException.CredentialsFailed()
 
+        val ok = passwordHash.check(login.password, user.password)
         if (!ok || user.username != login.username) {
-            throw AuthenticationFailedException("Password or username are incorrect")
+            throw AuthenticationException.CredentialsFailed()
         }
         val jwtService = JWTService()
         try {
@@ -26,13 +26,12 @@ class Login(
                 token = jwt
             )
         } catch (e: Exception) {
-            throw AuthenticationFailedException(e.message)
+            throw AuthenticationException.InvalidToken(e.message ?: "Failed to generate token")
         }
     }
 }
 
-class AuthenticationFailedException(message: String?) : RuntimeException(message)
-
+@Serializable
 data class LoginInput(
     val username: String,
     val password: String

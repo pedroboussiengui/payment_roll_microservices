@@ -9,9 +9,22 @@ export interface JwtPayload {
 }
 
 export function decodeJwt(): JwtPayload {
-    const accessToken = TokenStorage.getAccessToken();
+    console.log("decoding the token");
+    const accessToken = TokenStorage.getAccessToken() ?? TokenStorage.getToken();
+
+    if (accessToken) {
+        if (TokenStorage.getAccessToken()) {
+            console.log("Token lido do COOKIE (accessToken)");
+        } else {
+            console.log("Token lido do LOCALSTORAGE (fallback)");
+        }
+    } else {
+        console.log("Nenhum token encontrado!");
+    }
+
     if (!accessToken) {
         throw new Error("No access token found");
     }
+    console.log("token found");
     return jwtDecode(accessToken);
 }

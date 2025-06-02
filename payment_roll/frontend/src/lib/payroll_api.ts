@@ -11,17 +11,16 @@ const payroll = axios.create({
 });
 
 async function refreshToken(): Promise<string | null> {
-    const refreshToken = TokenStorage.getRefreshToken();
     if (!refreshToken) {
         return null;
     }
     try {
-        const response = await idp.post("/refresh-tokens", {
-            refreshToken: refreshToken
+        const res = await idp.post("/refresh-tokens", {}, {
+            withCredentials: true
         });
-        const SessionTokens: SessionTokens = response.data;
-        TokenStorage.setTokens(SessionTokens);
-        return SessionTokens.accessToken;
+        const SessionTokens: SessionTokens = res.data;
+        TokenStorage.setSession(SessionTokens.sessionId);
+        return TokenStorage.getAccessToken();
     } catch (err) {
         console.error('Error refreshing token:', err);
         return null;    
@@ -30,7 +29,8 @@ async function refreshToken(): Promise<string | null> {
 
 // intercept request: add the Bearer access token
 payroll.interceptors.request.use((config) => {
-    const accessToken = TokenStorage.getAccessToken();
+    const accessToken = TokenStorage.getAccessToken() ?? TokenStorage.getToken();
+    console.log(`interceptor token: ${accessToken}`);
     if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
     }

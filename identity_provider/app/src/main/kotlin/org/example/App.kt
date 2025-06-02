@@ -3,19 +3,19 @@
  */
 package org.example
 
+import io.ktor.http.Cookie
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.install
-import io.ktor.server.application.log
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.html.respondHtml
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.BadRequestException
+import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
-import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.head
 import io.ktor.server.routing.post
@@ -23,7 +23,6 @@ import io.ktor.server.routing.routing
 import kotlinx.html.FormMethod
 import kotlinx.html.body
 import kotlinx.html.form
-import kotlinx.html.h1
 import kotlinx.html.p
 import kotlinx.html.passwordInput
 import kotlinx.html.style
@@ -38,30 +37,31 @@ import org.example.application.usecase.RefreshToken
 import org.example.application.usecase.RefreshTokenInput
 import org.example.application.usecase.RetrieveSessionByID
 import org.example.application.usecase.RetrieveUser
-import org.example.application.usecase.SetUserContract
-import org.example.application.usecase.SetUserContractInput
+import org.example.application.usecase.GetTokensInput
 import org.example.application.usecase.UserRegistration
-import org.example.application.usecase.UserRegistrationInput
-import org.example.domain.UserNotFoundByIdException
-import org.example.domain.UserNotFoundException
 import org.example.infra.hash.BCryptPasswordHash
 import org.example.infra.redis.RedisConnection
 import org.example.infra.redis.RedisInMemoryDao
 import org.example.infra.repository.InMemoryUserRepository
-import java.util.UUID
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.receive
 import kotlinx.serialization.Serializable
+import org.example.application.AuthenticationException
+import org.example.application.SessionExpiredException
 import org.example.application.usecase.GetSession
+import org.example.application.usecase.GetTokens
 import org.example.application.usecase.UserRegistrationWithIdInput
-import kotlin.properties.Delegates
 
 @Serializable
 data class LogoutInput(
     val refreshToken: String
 )
 
+/**
+ * RFC 9457 - “Problem Details for HTTP APIs”
+ */
 @Serializable
 data class Problem(
     val title: String,
@@ -78,7 +78,7 @@ fun main() {
     val retrieveUser = RetrieveUser(userRepository)
     val login = Login(userRepository, passwordHash)
     val addUserContract = AddUserContract(userRepository)
-    val setUserContract = SetUserContract(userRepository, inMemoryDao, passwordHash)
+    val getTokens = GetTokens(userRepository, inMemoryDao, passwordHash)
     val logout = Logout(inMemoryDao)
     val retrieveSessionByID = RetrieveSessionByID(inMemoryDao)
     val refreshToken = RefreshToken(userRepository, inMemoryDao, passwordHash)
@@ -99,10 +99,62 @@ fun main() {
             json()
         }
         install(CORS) {
-            anyHost()
+            allowHost("localhost:5173", schemes = listOf("http"))
             anyMethod()
+            allowCredentials = true
             allowHeader(HttpHeaders.ContentType)
             allowHeader(HttpHeaders.Authorization)
+        }
+        install(StatusPages) {
+            exception<BadRequestException> { call, cause ->
+                call.respond(HttpStatusCode.BadRequest, Problem(
+                    title = "BadRequest",
+                    detail = cause.message ?: "Invalid request",
+                    status = HttpStatusCode.BadRequest.value
+                ))
+            }
+            exception<AuthenticationException.MissingToken> { call, cause ->
+                call.respond(HttpStatusCode.Unauthorized, Problem(
+                    title = "Unauthorized",
+                    detail = cause.message!!,
+                    status = HttpStatusCode.Unauthorized.value
+                ))
+            }
+            exception<AuthenticationException.CredentialsFailed> { call, cause ->
+                call.respond(HttpStatusCode.Unauthorized, Problem(
+                    title = "Unauthorized",
+                    detail = cause.message!!,
+                    status = HttpStatusCode.Unauthorized.value
+                ))
+            }
+            exception<AuthenticationException.ExpiredToken> { call, cause ->
+                call.respond(HttpStatusCode.Unauthorized, Problem(
+                    title = "Unauthorized",
+                    detail = cause.message!!,
+                    status = HttpStatusCode.Unauthorized.value
+                ))
+            }
+            exception<AuthenticationException.InvalidToken> { call, cause ->
+                call.respond(HttpStatusCode.Unauthorized, Problem(
+                    title = "Unauthorized",
+                    detail = cause.message!!,
+                    status = HttpStatusCode.Unauthorized.value
+                ))
+            }
+            exception<SessionExpiredException> { call, cause ->
+                call.respond(HttpStatusCode.Unauthorized, Problem(
+                    title = "Unauthorized",
+                    detail = cause.message,
+                    status = HttpStatusCode.Unauthorized.value
+                ))
+            }
+            exception<Exception> { call, cause ->
+                call.respond(HttpStatusCode.InternalServerError, Problem(
+                    title = "Unknown error",
+                    detail = cause.message ?: "Unknown error: ${cause.cause}",
+                    status = HttpStatusCode.InternalServerError.value
+                ))
+            }
         }
         routing {
             get("/auth") {
@@ -135,111 +187,95 @@ fun main() {
 
                 try {
                     val result = login.execute(LoginInput(username, password))
-//                    call.respond(HttpStatusCode.OK, result)
                     call.respondRedirect("http://localhost:5173/callback?token=${result.token}")
                 } catch (e: Exception) {
                     call.respondRedirect("/auth?error=1")
                 }
             }
-            get("/users/set-contract/{contractId}") {
-                val contractId = call.parameters["contractId"]
-                val partialToken = call.request.headers["Authorization"]
-                val useCookiesParam = call.request.queryParameters["cookies"]
-                val useCookies = when (useCookiesParam) {
-                    null -> false
-                    "true" -> true
-                    "false" -> false
-                    else -> throw BadRequestException("Invalid value for 'cookies'. Use 'true' or 'false'.")
-                }
-
-                if (partialToken == null) {
-                    call.respond(HttpStatusCode.Unauthorized)
-                    return@get
-                }
-
-                if (contractId == null) {
-                    call.respond(HttpStatusCode.BadRequest)
-                    return@get
-                }
-                try {
-                    val input = SetUserContractInput(partialToken, contractId)
-                    val output = setUserContract.execute(input)
-
-                    if (useCookies) {
-                        call.response.cookies.append(
-                            "refreshToken",
-                            output.refreshToken,
-                            path = "/",
-                            httpOnly = true,
-                            secure = false,
-                            maxAge = 3600
-                        )
-                        call.respond(HttpStatusCode.OK, mapOf(
-                            "sessionId" to output.sessionId,
-                            "accessToken" to output.accessToken
-                        ))
-                    } else {
-                        call.respond(HttpStatusCode.OK, output)
-                    }
-                } catch (e: Exception) {
-                    call.respond(HttpStatusCode.Unauthorized)
-                }
+            post("/authenticate") {
+                val input = call.receive<LoginInput>()
+                val output = login.execute(LoginInput(input.username, input.password))
+                call.respond(HttpStatusCode.OK, output)
             }
-            post("/logout") {
-                val input = call.receive<LogoutInput>()
-                logout.execute(input.refreshToken)
-                call.respond(HttpStatusCode.NoContent)
+            post("/tokens/{contractId}") {
+                val partialToken = call.request.headers["Authorization"]
+                    ?: throw AuthenticationException.MissingToken()
+
+                val contractId = call.parameters["contractId"]
+                    ?: throw BadRequestException("Contract ID is mandatory")
+
+                val input = GetTokensInput(partialToken, contractId)
+                val output = getTokens.execute(input)
+
+                call.response.cookies.append(
+                    "refreshToken",
+                    output.refreshToken,
+                    path = "/",
+                    httpOnly = true,
+                    secure = false,
+                    maxAge = 120
+                )
+                call.response.cookies.append(
+                    "accessToken",
+                    output.accessToken,
+                    path = "/",
+                    httpOnly = false,
+                    secure = false,
+                    maxAge = 40
+                )
+                call.respond(HttpStatusCode.OK, mapOf(
+                    "sessionId" to output.sessionId,
+                    "accessToken" to output.accessToken
+                ))
             }
             post("/refresh-tokens") {
-                val input = call.receive<RefreshTokenInput>()
-                val useCookiesParam = call.request.queryParameters["cookies"]
-                val useCookies = when (useCookiesParam) {
-                    null -> false
-                    "true" -> true
-                    "false" -> false
-                    else -> throw BadRequestException("Invalid value for 'cookies'. Use 'true' or 'false'.")
-                }
-                try {
-                    val output = refreshToken.execute(input)
-                    if (useCookies) {
-                        call.response.cookies.append(
-                            "refreshToken",
-                            output.refreshToken,
-                            path = "/",
-                            httpOnly = true,
-                            secure = false,
-                            maxAge = 3600
-                        )
-                        call.respond(HttpStatusCode.OK, mapOf(
-                            "sessionId" to output.sessionId,
-                            "accessToken" to output.accessToken
-                        ))
-                    } else {
-                        call.respond(HttpStatusCode.OK, output)
-                    }
-                } catch (e: Exception) {
-                    log.error(e.message)
-                    call.respond(
-                        HttpStatusCode.Unauthorized,
-                        Problem(
-                            title = "Unauthorized",
-                            detail = e.message ?: "Invalid refresh token",
-                            status = HttpStatusCode.Unauthorized.value
-                        )
-                    )
-                }
+                val refreshTokenCookie = call.request.cookies["refreshToken"]
+                    ?: throw SessionExpiredException("Refresh token is missing")
+
+                val input = RefreshTokenInput(refreshTokenCookie)
+                val output = refreshToken.execute(input)
+
+                call.response.cookies.append(
+                    "refreshToken",
+                    output.refreshToken,
+                    path = "/",
+                    httpOnly = true,
+                    secure = false,
+                    maxAge = minOf(120, output.remainTtl)
+                )
+                call.response.cookies.append(
+                    "accessToken",
+                    output.accessToken,
+                    path = "/",
+                    httpOnly = false,
+                    secure = false,
+                    maxAge = 40
+                )
+                call.respond(HttpStatusCode.OK, mapOf(
+                    "sessionId" to output.sessionId,
+                    "accessToken" to output.accessToken
+                ))
+            }
+            post("/logout") {
+                val refreshToken = call.request.cookies["refreshToken"]
+                    ?: throw SessionExpiredException("Refresh token is missing")
+
+                logout.execute(refreshToken)
+                call.response.cookies.append(
+                    Cookie(name = "refreshToken", value = "", path = "/", maxAge = 0)
+                )
+                call.response.cookies.append(
+                    Cookie(name = "accessToken", value = "", path = "/", maxAge = 0)
+                )
+                call.respond(HttpStatusCode.OK)
             }
             get("/sessions/{sessionId}") {
                 val sessionId = call.parameters["sessionId"]
-                if (sessionId == null) {
-                    call.respond(HttpStatusCode.BadRequest)
-                    return@get
-                }
+                    ?: throw BadRequestException("Session ID is mandatory")
+
                 val output = getSession.execute(sessionId)
-                if (output == null) {
-                    call.respond(HttpStatusCode.NotFound)
-                    return@get
-                }
+                    ?: throw NotFoundException("Session not found")
+
                 call.respond(HttpStatusCode.OK, output)
             }
             get("/health") {
@@ -249,6 +285,19 @@ fun main() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.ServiceUnavailable, "Redis is not available")
                 }
+            }
+            get("/protected/test") {
+//                val accessToken = call.request.headers["Authorization"]
+//                    ?: throw AuthenticationException.MissingToken()
+
+                val refreshToken = call.request.cookies["refreshToken"]
+                val accessToken = call.request.cookies["accessToken"]
+
+                call.respond(HttpStatusCode.OK, mapOf(
+                    "message" to "Hello World",
+                    "accessToken" to accessToken,
+                    "refreshToken" to refreshToken
+                ))
             }
         }
     }.start(wait = true)
@@ -312,3 +361,4 @@ fun main() {
      * http://localhost:8081/auth?response_type=code&redirect_uri=localhost:8082/select_contract
      */
 }
+

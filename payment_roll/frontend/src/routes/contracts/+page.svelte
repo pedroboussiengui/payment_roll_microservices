@@ -10,10 +10,10 @@
     let contracts: Contract[] = []
 
     onMount(async () => {
+        console.log("contract");
         try {
             const payload = decodeJwt()
             const userId = payload.sub;
-            // contracts = await listUserContracts.execute(userId, token!!);
             const res = await payroll.get(`/employees/${userId}/contracts`)
             contracts = res.data as Contract[];
         } catch (error) {
@@ -24,9 +24,14 @@
 
     async function setContract(contractId: string) {
         try {
-            const res = await idp.get(`/users/set-contract/${contractId}`);
+            console.log("setando contrato");
+            const res = await idp.post(`/tokens/${contractId}`, {}, {
+                withCredentials: true
+            });
             const sessionTokens = res.data as SessionTokens;
-            TokenStorage.setTokens(sessionTokens);
+            TokenStorage.setSession(sessionTokens.sessionId);
+            TokenStorage.removeToken();
+            console.log("redirecionando para home");
             goto("/home")
         } catch (error) {
             console.error("Error setting contract:", error);
