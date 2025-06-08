@@ -8,8 +8,8 @@
 
     onMount(() => {
         try {
-            console.log("entrei na home")
-            console.log(TokenStorage.getAccessToken());
+            // console.log("entrei na home")
+            // console.log(TokenStorage.getAccessToken());
             const payload = decodeJwt()
             username = payload.name;
         } catch(err) {

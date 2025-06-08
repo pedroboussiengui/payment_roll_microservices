@@ -1,9 +1,11 @@
 
 import axios from "axios";
-import { TokenStorage } from "./infra/storage/TokenStorage";
+// import { TokenStorage } from "./infra/storage/TokenStorage";
 import idp from "./idp_api";
 import type { SessionTokens } from "./utils/types";
 import { logout } from "$lib/auth";
+import { accessToken } from "./stores/accessToken";
+import { get } from "svelte/store";
 
 const payroll = axios.create({
     baseURL: 'http://localhost:8081',
@@ -19,8 +21,10 @@ async function refreshToken(): Promise<string | null> {
             withCredentials: true
         });
         const SessionTokens: SessionTokens = res.data;
-        TokenStorage.setSession(SessionTokens.sessionId);
-        return TokenStorage.getAccessToken();
+        // TokenStorage.setSession(SessionTokens.sessionId);
+        // return TokenStorage.getAccessToken();
+        accessToken.set(SessionTokens.accessToken);
+        return SessionTokens.accessToken;
     } catch (err) {
         console.error('Error refreshing token:', err);
         return null;    
@@ -29,10 +33,12 @@ async function refreshToken(): Promise<string | null> {
 
 // intercept request: add the Bearer access token
 payroll.interceptors.request.use((config) => {
-    const accessToken = TokenStorage.getAccessToken() ?? TokenStorage.getToken();
-    console.log(`interceptor token: ${accessToken}`);
-    if (accessToken) {
-        config.headers.Authorization = `Bearer ${accessToken}`;
+    // const accessToken = TokenStorage.getAccessToken() ?? TokenStorage.getToken();
+    // console.log(`interceptor token: ${accessToken}`);
+    accessToken.check();
+    const bearerToken = get(accessToken);
+    if (bearerToken) {
+        config.headers.Authorization = `Bearer ${bearerToken}`;
     }
     return config
 }, Promise.reject);

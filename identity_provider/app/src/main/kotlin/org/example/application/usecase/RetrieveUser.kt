@@ -10,7 +10,8 @@ class RetrieveUser(
     val userRepository: UserRepository
 ) {
     fun execute(input: String): RetrieveUserOutput {
-        val user = userRepository.findById(UUID.fromString(input)) ?: throw UserNotFoundByIdException(input)
+        val user = userRepository.findById(UUID.fromString(input))
+            ?: throw UserNotFoundByIdException(input)
         return RetrieveUserOutput(
             userId = user.userId.toString(),
             username = user.username,

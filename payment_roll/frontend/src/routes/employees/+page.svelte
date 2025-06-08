@@ -3,15 +3,19 @@
     import type { Employee } from "$lib/utils/types";
     import Navbar from "../../components/navbar.svelte";
     import payroll from "$lib/payroll_api";
+    // import { TokenStorage } from "$lib/infra/storage/TokenStorage";
 
     let employees: Employee[] = []
 
     onMount(async () => {
         try {
+            // console.log("Verificando autenticação...");
+            // console.log(TokenStorage.isAuthenticated2());
             const res = await payroll.get('/employees')
             employees = res.data as Employee[];
-        } catch (err) {
+        } catch (err: any) {
             console.error('Erro ao carregar funcionários:', err);
+            console.log(err.response.data);
         }
     });
 </script>

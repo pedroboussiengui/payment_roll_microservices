@@ -1,7 +1,7 @@
 <script lang="ts">
     import { logout } from "$lib/auth";
-    import idp from "$lib/idp_api";
-    import { TokenStorage } from "$lib/infra/storage/TokenStorage";
+    // import idp from "$lib/idp_api";
+    // import { TokenStorage } from "$lib/infra/storage/TokenStorage";
 
     async function endSession() {
         // const refreshToken = TokenStorage.getRefreshToken();

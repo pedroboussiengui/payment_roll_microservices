@@ -43,6 +43,25 @@ export class TokenStorage {
             ?.split("=")[1] ?? null;
     }
 
+    // static isAuthenticated(): boolean {
+    //     const cookie = document.cookie
+    //         .split(';')
+    //         .find(c => c.startsWith('isAuthenticated'));
+    //     return cookie ? cookie.split('=')[1] === 'true' : false;
+    // }
+
+    // static isAuthenticated2(): string {
+    //     const cookie = document.cookie
+    //         .split(';')
+    //         .find(c => c.startsWith('isAuthenticated'))
+    //         ?.split('=')[1];
+    //     if (cookie === 'true') {
+    //         return 'true';
+    //     } else {
+    //         return 'false';
+    //     }
+    // }
+
     static setSession(sessionId: string): void {
         localStorage.setItem('sessionId', sessionId);
     }

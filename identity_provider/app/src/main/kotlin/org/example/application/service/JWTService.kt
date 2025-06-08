@@ -10,6 +10,7 @@ import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.DecodedJWT
 import org.example.application.AuthenticationException
 import org.example.domain.User
+import java.time.Duration
 import java.time.Instant
 import java.util.Date
 
@@ -57,7 +58,7 @@ class JWTService {
             .withClaim("type", "access_token")
             .withClaim("name", user.username)
             .withClaim("contract_id", contractId)
-            .withExpiresAt(instant.plusSeconds(accessTokenExpiration))
+            .withExpiresAt(instant.plus(Duration.ofSeconds(accessTokenExpiration)))
             .sign(algorithm)
     }
 

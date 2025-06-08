@@ -8,6 +8,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.install
+import io.ktor.server.application.log
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.html.respondHtml
 import io.ktor.server.netty.Netty
@@ -84,7 +85,7 @@ fun main() {
     val refreshToken = RefreshToken(userRepository, inMemoryDao, passwordHash)
     val getSession = GetSession(inMemoryDao)
 
-    userRegistration.execute(
+    val output = userRegistration.execute(
         UserRegistrationWithIdInput(
             "805a852d-61e8-4a07-9e1f-02141ae74e94",
             "pedroteste",
@@ -92,7 +93,7 @@ fun main() {
             "pedro@email.com")
     )
 
-    addUserContract.execute("805a852d-61e8-4a07-9e1f-02141ae74e94", "0042d963-6c54-4c9f-a60c-bfcde866d29e")
+    addUserContract.execute(output.userId, "0042d963-6c54-4c9f-a60c-bfcde866d29e")
 
     embeddedServer(Netty, port = 8080) {
         install(ContentNegotiation) {
@@ -142,6 +143,7 @@ fun main() {
                 ))
             }
             exception<SessionExpiredException> { call, cause ->
+                call.application.log.warn("Refresh token is missing")
                 call.respond(HttpStatusCode.Unauthorized, Problem(
                     title = "Unauthorized",
                     detail = cause.message,
@@ -212,17 +214,11 @@ fun main() {
                     output.refreshToken,
                     path = "/",
                     httpOnly = true,
-                    secure = false,
-                    maxAge = 120
+                    secure = true,
+                    maxAge = 120,
+                    extensions = mapOf("SameSite" to "Lax")
                 )
-                call.response.cookies.append(
-                    "accessToken",
-                    output.accessToken,
-                    path = "/",
-                    httpOnly = false,
-                    secure = false,
-                    maxAge = 40
-                )
+
                 call.respond(HttpStatusCode.OK, mapOf(
                     "sessionId" to output.sessionId,
                     "accessToken" to output.accessToken
@@ -240,17 +236,11 @@ fun main() {
                     output.refreshToken,
                     path = "/",
                     httpOnly = true,
-                    secure = false,
-                    maxAge = minOf(120, output.remainTtl)
+                    secure = true,
+                    maxAge = output.remainTtl,
+                    extensions = mapOf("SameSite" to "None")
                 )
-                call.response.cookies.append(
-                    "accessToken",
-                    output.accessToken,
-                    path = "/",
-                    httpOnly = false,
-                    secure = false,
-                    maxAge = 40
-                )
+
                 call.respond(HttpStatusCode.OK, mapOf(
                     "sessionId" to output.sessionId,
                     "accessToken" to output.accessToken
@@ -264,9 +254,7 @@ fun main() {
                 call.response.cookies.append(
                     Cookie(name = "refreshToken", value = "", path = "/", maxAge = 0)
                 )
-                call.response.cookies.append(
-                    Cookie(name = "accessToken", value = "", path = "/", maxAge = 0)
-                )
+
                 call.respond(HttpStatusCode.OK)
             }
             get("/sessions/{sessionId}") {
@@ -285,19 +273,6 @@ fun main() {
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.ServiceUnavailable, "Redis is not available")
                 }
-            }
-            get("/protected/test") {
-//                val accessToken = call.request.headers["Authorization"]
-//                    ?: throw AuthenticationException.MissingToken()
-
-                val refreshToken = call.request.cookies["refreshToken"]
-                val accessToken = call.request.cookies["accessToken"]
-
-                call.respond(HttpStatusCode.OK, mapOf(
-                    "message" to "Hello World",
-                    "accessToken" to accessToken,
-                    "refreshToken" to refreshToken
-                ))
             }
         }
     }.start(wait = true)
