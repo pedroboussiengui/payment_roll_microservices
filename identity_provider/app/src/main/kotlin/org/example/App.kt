@@ -187,6 +187,16 @@ fun main() {
                 val username = formParameters["username"].toString()
                 val password = formParameters["password"].toString()
 
+                call.response.cookies.append(
+                    "isAuth",
+                    "1",
+                    path = "/",
+                    httpOnly = true,
+                    secure = true,
+                    maxAge = 120,
+                    extensions = mapOf("SameSite" to "Lax")
+                )
+
                 try {
                     val result = login.execute(LoginInput(username, password))
                     call.respondRedirect("http://localhost:5173/callback?token=${result.token}")
@@ -212,6 +222,15 @@ fun main() {
                 call.response.cookies.append(
                     "refreshToken",
                     output.refreshToken,
+                    path = "/",
+                    httpOnly = true,
+                    secure = true,
+                    maxAge = 120,
+                    extensions = mapOf("SameSite" to "Lax")
+                )
+                call.response.cookies.append(
+                    "isAuth",
+                    "2",
                     path = "/",
                     httpOnly = true,
                     secure = true,
@@ -253,6 +272,9 @@ fun main() {
                 logout.execute(refreshToken)
                 call.response.cookies.append(
                     Cookie(name = "refreshToken", value = "", path = "/", maxAge = 0)
+                )
+                call.response.cookies.append(
+                    Cookie(name = "isAuth", value = "", path = "/", maxAge = 0)
                 )
 
                 call.respond(HttpStatusCode.OK)

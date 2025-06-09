@@ -3,7 +3,6 @@
     import type { Employee } from "$lib/utils/types";
     import Navbar from "../../components/navbar.svelte";
     import payroll from "$lib/payroll_api";
-    // import { TokenStorage } from "$lib/infra/storage/TokenStorage";
 
     let employees: Employee[] = []
 
