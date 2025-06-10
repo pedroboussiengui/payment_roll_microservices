@@ -13,4 +13,19 @@ fun StatusPagesConfig.employeeExceptions() {
             status = HttpStatusCode.NotFound.value
         ))
     }
+    exception<EmployeeExceptions.BusinessRuleViolation> { call, cause ->
+        call.respond(HttpStatusCode.UnprocessableEntity, Problem(
+            title = "Business rules violations",
+            detail = cause.message!!,
+            status = HttpStatusCode.UnprocessableEntity.value,
+            errors = cause.violations
+        ))
+    }
+    exception<EmployeeExceptions.UnicityViolation> { call, cause ->
+        call.respond(HttpStatusCode.Conflict, Problem(
+            title = "Unicity principle violation",
+            detail = cause.message!!,
+            status = HttpStatusCode.Conflict.value
+        ))
+    }
 }

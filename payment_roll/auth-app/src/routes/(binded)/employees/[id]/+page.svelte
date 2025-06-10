@@ -1,15 +1,14 @@
 <script lang="ts">
     import type { Employee } from "$lib/types";
-    import { page } from '$app/stores';
 	import { onMount } from 'svelte';
-	import { get } from 'svelte/store';
     import payroll from "$lib/services/axios/payroll";
     import Navbar from "$lib/components/navbar.svelte";
+	import { page } from "$app/stores";
 
     let employee: Employee | null = null;
     let error: string | null = null;
     
-    const employeeId = get(page).params.id;
+    $: employeeId = $page.params.id;
 
     onMount(async () => {
         try {

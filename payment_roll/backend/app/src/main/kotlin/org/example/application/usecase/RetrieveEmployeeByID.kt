@@ -15,7 +15,7 @@ class RetrieveEmployeeByID(
     private val jwtService: JwtService
 ) {
     fun execute(employeeId: String, accessToken: String): RetrieveEmployeeByIDOutput {
-        jwtService.isValid(accessToken)
+//        jwtService.isValid(accessToken)
         val employee: Employee = employeeDao.findById(employeeId)
             ?: throw EmployeeExceptions.NotFound()
 

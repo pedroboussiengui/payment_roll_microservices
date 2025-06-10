@@ -26,6 +26,35 @@ data class Employee(
                 birthDate
             )
         }
+
+        fun create(
+            name: String,
+            document: String,
+            birthDate: String
+        ): Employee {
+            val userId = UUID.randomUUID()
+            val birthDate = LocalDate.parse(birthDate)
+            return Employee(
+                userId,
+                name,
+                document,
+                birthDate
+            )
+        }
+    }
+
+    fun validate(): List<String> {
+        val errors = mutableListOf<String>()
+        if (name.isBlank()) {
+            errors.add("Name cannot be null or blank")
+        }
+        if (!document.matches("^\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}$".toRegex())) {
+            errors.add("Invalid document format, should be XXX.XXX.XXX-XX")
+        }
+        if (birthDate.isAfter(LocalDate.now())) {
+            errors.add("Birth date cannot be in the future")
+        }
+        return errors
     }
 
     fun addContract(contract: Contract) {

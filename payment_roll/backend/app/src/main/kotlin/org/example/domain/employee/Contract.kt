@@ -7,6 +7,7 @@ data class Contract(
     val id: UUID,
     val matricula: String,
     val entryDate: LocalDate,
+//    val exerciseDate: LocalDate,
     val contractType: ContractType,
     val position: String,
     val function: String?,

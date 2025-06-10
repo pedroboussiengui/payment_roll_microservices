@@ -5,18 +5,23 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.receive
 import io.ktor.server.response.*
+import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import org.example.application.exceptions.AuthenticationException
 import org.example.application.usecase.AddEmployee
+import org.example.application.usecase.AddEmployeeInput
 import org.example.application.usecase.ListEmployeeContracts
 import org.example.application.usecase.ListEmployees
 import org.example.application.usecase.RetrieveEmployeeByID
 import org.example.infra.jwt.Auth0JwtService
+import org.example.infra.ktor.exceptionsHandler.Problem
 import org.example.infra.ktor.exceptionsHandler.authenticationExceptions
 import org.example.infra.ktor.exceptionsHandler.employeeExceptions
 import org.example.infra.repository.EmployeeDao
@@ -39,7 +44,7 @@ fun main() {
     val listEmployeeContracts = ListEmployeeContracts(employeeDao)
     val retrieveEmployeeByID = RetrieveEmployeeByID(employeeDao, jwtService)
     val listEmployees = ListEmployees(employeeDao, jwtService)
-    val addEmployee = AddEmployee(employeeDao)
+    val addEmployee = AddEmployee(employeeDao, jwtService)
 
     LoadData(employeeDao)
 
@@ -58,6 +63,13 @@ fun main() {
         install(StatusPages) {
             authenticationExceptions()
             employeeExceptions()
+            exception<BadRequestException> { call, cause ->
+                call.respond(HttpStatusCode.BadRequest, Problem(
+                    title = "BadRequest",
+                    detail = cause.message ?: "Invalid request",
+                    status = HttpStatusCode.BadRequest.value
+                ))
+            }
         }
         routing {
             get("/employees") {
@@ -75,6 +87,12 @@ fun main() {
                 val employeeId = call.parameters["employeeId"]
                 val output = listEmployeeContracts.execute(employeeId!!)
                 call.respond(output)
+            }
+            post("/employees") {
+                val accessToken = call.attributes[ACCESS_TOKEN_KEY]
+                val input = call.receive<AddEmployeeInput>()
+                val output = addEmployee.execute(input, accessToken)
+                call.respond(HttpStatusCode.Created, output)
             }
         }
     }.start(wait = true)

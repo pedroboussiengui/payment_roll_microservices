@@ -9,5 +9,6 @@ import kotlinx.serialization.Serializable
 data class Problem(
     val title: String,
     val detail: String,
-    val status: Int
+    val status: Int,
+    val errors: List<String>? = null
 )

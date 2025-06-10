@@ -13,6 +13,10 @@ class EmployeeDao {
         return db[employeeId]
     }
 
+    fun findByDocument(document: String): Employee? {
+        return db.values.find { it.document == document }
+    }
+
     fun findAll(): List<Employee> {
         return db.values.toList()
     }
