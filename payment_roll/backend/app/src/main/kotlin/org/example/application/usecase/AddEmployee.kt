@@ -1,6 +1,10 @@
-package org.example
+package org.example.application.usecase
 
 import kotlinx.serialization.Serializable
+import org.example.domain.employee.Employee
+import org.example.infra.jwt.JwtService
+import org.example.infra.repository.EmployeeDao
+import org.example.infra.ktor.UUIDSerializer
 import java.util.UUID
 
 class AddEmployee(
@@ -24,6 +28,7 @@ data class AddEmployeeInput(
     val document: String,
     val birthDate: String,
 )
+
 @Serializable
 data class AddEmployeeOutput(
     @Serializable(with = UUIDSerializer::class)

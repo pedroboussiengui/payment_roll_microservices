@@ -1,4 +1,4 @@
-package org.example
+package org.example.infra.ktor
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind

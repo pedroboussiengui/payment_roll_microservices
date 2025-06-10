@@ -1,7 +1,7 @@
-package org.example
+package org.example.domain.employee
 
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 data class Employee(
     val id: UUID,

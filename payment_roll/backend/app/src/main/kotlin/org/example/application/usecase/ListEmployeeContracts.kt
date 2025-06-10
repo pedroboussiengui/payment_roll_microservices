@@ -1,6 +1,12 @@
-package org.example
+package org.example.application.usecase
 
 import kotlinx.serialization.Serializable
+import org.example.domain.employee.ContractType
+import org.example.domain.employee.Employee
+import org.example.domain.employee.EmployeeExceptions
+import org.example.infra.repository.EmployeeDao
+import org.example.infra.ktor.LocalDateSerializer
+import org.example.infra.ktor.UUIDSerializer
 import java.time.LocalDate
 import java.util.UUID
 
@@ -9,7 +15,7 @@ class ListEmployeeContracts(
 ) {
     fun execute(employeeId: String): List<EmployeeContractOutput> {
         val employee: Employee = employeeDao.findById(employeeId)
-            ?: throw Exception("Employee not found")
+            ?: throw EmployeeExceptions.NotFound()
 
         val output = mutableListOf<EmployeeContractOutput>()
         employee.contracts.map { contract ->

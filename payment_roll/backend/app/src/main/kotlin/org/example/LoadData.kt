@@ -1,5 +1,9 @@
 package org.example
 
+import org.example.domain.employee.Contract
+import org.example.domain.employee.ContractType
+import org.example.domain.employee.Employee
+import org.example.infra.repository.EmployeeDao
 import java.time.LocalDate
 import java.util.UUID
 

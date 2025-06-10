@@ -1,4 +1,4 @@
-package org.example.jwt
+package org.example.infra.jwt
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
@@ -8,11 +8,16 @@ import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.exceptions.SignatureVerificationException
 import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.DecodedJWT
-import org.example.AuthenticationException
+import org.example.application.exceptions.AuthenticationException
 
 const val SECRET_KEY = "WBMcQY7piOdrn0v9vzO1NVBomDRsOY4L4ky6L/wgLJB4c9STraa/H3SOnXZmm6nN"
 
-class JwtService {
+interface JwtService {
+    fun getSubjectIfValid(token: String): String?
+    fun isValid(token: String): Boolean
+}
+
+class Auth0JwtService : JwtService {
     private val algorithm = Algorithm.HMAC256(SECRET_KEY)
     private val issuer = "identity_provider"
     private val verifier = JWT.require(algorithm)
@@ -38,11 +43,11 @@ class JwtService {
         }
     }
 
-    fun getSubjectIfValid(token: String): String? {
+    override fun getSubjectIfValid(token: String): String? {
         return validateAndDecode(token).subject
     }
 
-    fun isValid(token: String): Boolean {
+    override fun isValid(token: String): Boolean {
         return try {
             validateAndDecode(token)
             true

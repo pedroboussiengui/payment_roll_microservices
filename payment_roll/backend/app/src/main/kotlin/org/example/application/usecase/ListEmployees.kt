@@ -1,18 +1,19 @@
-package org.example
+package org.example.application.usecase
 
 import kotlinx.serialization.Serializable
-import org.example.jwt.JwtService
+import org.example.infra.repository.EmployeeDao
+import org.example.infra.ktor.LocalDateSerializer
+import org.example.infra.ktor.UUIDSerializer
+import org.example.infra.jwt.JwtService
 import java.time.LocalDate
 import java.util.UUID
 
 class ListEmployees(
-    private val employeeDao: EmployeeDao
+    private val employeeDao: EmployeeDao,
+    private val jwtService: JwtService
 ) {
-    private val jwtService = JwtService()
     fun execute(accessToken: String): List<ListEmployeeByIDOutput> {
-        if (!jwtService.isValid(accessToken)) {
-            throw AuthenticationFailedException("Invalid token")
-        }
+        jwtService.isValid(accessToken)
         val output = mutableListOf<ListEmployeeByIDOutput>()
         employeeDao.findAll().map { employee ->
             output.add(

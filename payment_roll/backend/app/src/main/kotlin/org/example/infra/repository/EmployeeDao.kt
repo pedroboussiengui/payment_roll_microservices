@@ -1,4 +1,6 @@
-package org.example
+package org.example.infra.repository
+
+import org.example.domain.employee.Employee
 
 class EmployeeDao {
     private val db: MutableMap<String, Employee> = mutableMapOf()
