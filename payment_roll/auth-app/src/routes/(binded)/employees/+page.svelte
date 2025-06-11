@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
+    import { goto } from "$app/navigation";
     import Navbar from "$lib/components/navbar.svelte";
     import payroll from "$lib/services/axios/payroll";
     import type { Employee } from "$lib/types";
@@ -8,14 +8,20 @@
 
     let employees: Employee[] = []
 
+    let nameSearch = '';
+
     onMount(async () => {
-        try {
-            const res = await payroll.get('/employees')
-            employees = res.data as Employee[];
-        } catch (err: any) {
-            console.error('Erro ao carregar funcionários:', err);
-            console.log(err.response.data);
-        }
+        await payroll.get('/employees')
+            .then((res) => {
+                employees = res.data as Employee[];
+            })
+            .catch((err) => {
+                console.log(err.response.data);
+            });
+    });
+
+    $: filteredEmployees = employees.filter((employee) => {
+        return employee.name.toLowerCase().includes(nameSearch.toLowerCase());
     });
 
     function detailEmployee(employeeId: string) {
@@ -40,6 +46,13 @@
     </button>
 </div>
 
+<input
+    type="text"
+    bind:value={nameSearch}
+    placeholder="Search by name..."
+    class="mb-4 p-2 border border-gray-300 rounded"
+/>
+
 <table class="min-w-full table-auto border border-gray-300">
     <thead>
         <tr class="bg-gray-100">
@@ -55,7 +68,7 @@
         </tr>
     </thead>
     <tbody>
-        {#each employees as employee}
+        {#each filteredEmployees as employee}
             <tr>
                 <td class="border border-gray-300 px-4 py-2">{employee.name}</td>
                 <td class="border border-gray-300 px-4 py-2">{employee.document}</td>

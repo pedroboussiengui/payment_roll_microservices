@@ -47,18 +47,6 @@
 				<p class="text-sm text-gray-500 font-medium">Birth Date</p>
 				<p class="text-base text-gray-800">{employee.birthDate}</p>
 			</div>
-            <div>
-				<p class="text-sm text-gray-500 font-medium">Name</p>
-				<p class="text-base text-gray-800">Pedro henrique wilfride de lima boussiengui</p>
-			</div>
-			<div>
-				<p class="text-sm text-gray-500 font-medium">Document</p>
-				<p class="text-base text-gray-800">{employee.document}</p>
-			</div>
-			<div>
-				<p class="text-sm text-gray-500 font-medium">Birth Date</p>
-				<p class="text-base text-gray-800">{employee.birthDate}</p>
-			</div>
 		</div>
 	</fieldset>
 {/if}

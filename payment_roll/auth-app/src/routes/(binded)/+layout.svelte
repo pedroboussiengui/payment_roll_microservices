@@ -1,10 +1,8 @@
 <script lang="ts">
     import { refreshToken } from "$lib/services/auth";
-    import { accessToken } from "$lib/store/auth";
+    import { accessToken, tokenReady } from "$lib/store/auth";
     import { onMount } from "svelte";
-    import { get, writable } from "svelte/store";
-
-    const tokenReady = writable(false);
+    import { get } from "svelte/store";
 
     onMount(async () => {
         console.log("Fetching the token...");
@@ -19,10 +17,12 @@
     });
 </script>
 
-{#if $tokenReady}
+<slot />
+
+<!-- {#if $tokenReady}
 	<slot />
 {:else}
 	<p>Carregando...</p>
-{/if}
+{/if} -->
 
 
