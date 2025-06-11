@@ -3,11 +3,28 @@ package org.example.domain.employee
 import java.time.LocalDate
 import java.util.UUID
 
+enum class MaritalStatus {
+    single,
+    married,
+    divorced,
+    widowed
+}
+
+enum class Gender {
+    male,
+    female
+}
+
 data class Employee(
     val id: UUID,
     val name: String,
     val document: String,
     val birthDate: LocalDate,
+    val identity: String,
+    val maritalStatus: MaritalStatus,
+    val gender: Gender,
+    val motherName: String,
+    val fatherName: String?,
     val contracts: MutableList<Contract> = mutableListOf()
 ) {
     companion object {
@@ -15,7 +32,12 @@ data class Employee(
             id: String,
             name: String,
             document: String,
-            birthDate: String
+            birthDate: String,
+            identity: String,
+            maritalStatus: MaritalStatus,
+            gender: Gender,
+            motherName: String,
+            fatherName: String?
         ): Employee {
             val userId = UUID.fromString(id)
             val birthDate = LocalDate.parse(birthDate)
@@ -23,14 +45,24 @@ data class Employee(
                 userId,
                 name,
                 document,
-                birthDate
+                birthDate,
+                identity,
+                maritalStatus,
+                gender,
+                motherName,
+                fatherName
             )
         }
 
         fun create(
             name: String,
             document: String,
-            birthDate: String
+            birthDate: String,
+            identity: String,
+            maritalStatus: MaritalStatus,
+            gender: Gender,
+            motherName: String,
+            fatherName: String?
         ): Employee {
             val userId = UUID.randomUUID()
             val birthDate = LocalDate.parse(birthDate)
@@ -38,7 +70,12 @@ data class Employee(
                 userId,
                 name,
                 document,
-                birthDate
+                birthDate,
+                identity,
+                maritalStatus,
+                gender,
+                motherName,
+                fatherName
             )
         }
     }

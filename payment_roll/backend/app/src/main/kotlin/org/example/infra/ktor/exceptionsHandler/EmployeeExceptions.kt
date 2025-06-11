@@ -8,7 +8,7 @@ import org.example.domain.employee.EmployeeExceptions
 fun StatusPagesConfig.employeeExceptions() {
     exception<EmployeeExceptions.NotFound> { call, cause ->
         call.respond(HttpStatusCode.NotFound, Problem(
-            title = "NotFound",
+            title = "Employee not found",
             detail = cause.message ?: "Employee not found",
             status = HttpStatusCode.NotFound.value
         ))

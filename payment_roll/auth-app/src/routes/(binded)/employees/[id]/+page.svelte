@@ -47,6 +47,26 @@
 				<p class="text-sm text-gray-500 font-medium">Birth Date</p>
 				<p class="text-base text-gray-800">{employee.birthDate}</p>
 			</div>
+			<div>
+				<p class="text-sm text-gray-500 font-medium">Identity number</p>
+				<p class="text-base text-gray-800">{employee.identity}</p>
+			</div>
+			<div>
+				<p class="text-sm text-gray-500 font-medium">Marial status</p>
+				<p class="text-base text-gray-800">{employee.maritalStatus}</p>
+			</div>
+			<div>
+				<p class="text-sm text-gray-500 font-medium">Gender</p>
+				<p class="text-base text-gray-800">{employee.gender}</p>
+			</div>
+			<div>
+				<p class="text-sm text-gray-500 font-medium">Mother name</p>
+				<p class="text-base text-gray-800">{employee.motherName}</p>
+			</div>
+			<div>
+				<p class="text-sm text-gray-500 font-medium">Father name</p>
+				<p class="text-base text-gray-800">{employee.fatherName}</p>
+			</div>
 		</div>
 	</fieldset>
 {/if}

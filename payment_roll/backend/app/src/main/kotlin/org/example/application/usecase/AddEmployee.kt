@@ -3,6 +3,8 @@ package org.example.application.usecase
 import kotlinx.serialization.Serializable
 import org.example.domain.employee.Employee
 import org.example.domain.employee.EmployeeExceptions
+import org.example.domain.employee.Gender
+import org.example.domain.employee.MaritalStatus
 import org.example.infra.jwt.JwtService
 import org.example.infra.repository.EmployeeDao
 import org.example.infra.ktor.UUIDSerializer
@@ -20,7 +22,13 @@ class AddEmployee(
         val employee = Employee.create(
             input.name,
             input.document,
-            input.birthDate)
+            input.birthDate,
+            input.identity,
+            input.maritalStatus,
+            input.gender,
+            input.motherName,
+            input.fatherName
+        )
         val validationResult = employee.validate()
         if (validationResult.isNotEmpty()) {
             throw EmployeeExceptions.BusinessRuleViolation(
@@ -38,6 +46,11 @@ data class AddEmployeeInput(
     val name: String,
     val document: String,
     val birthDate: String,
+    val identity: String,
+    val maritalStatus: MaritalStatus,
+    val gender: Gender,
+    val motherName: String,
+    val fatherName: String?
 )
 
 @Serializable

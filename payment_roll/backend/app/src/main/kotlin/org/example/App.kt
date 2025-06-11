@@ -14,6 +14,7 @@ import io.ktor.server.response.*
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import kotlinx.serialization.json.Json
 import org.example.application.exceptions.AuthenticationException
 import org.example.application.usecase.AddEmployee
 import org.example.application.usecase.AddEmployeeInput
@@ -50,7 +51,10 @@ fun main() {
 
     embeddedServer(Netty, port = 8081) {
         install(ContentNegotiation) {
-            json()
+            json(Json {
+                encodeDefaults = true
+                explicitNulls = false
+            })
         }
         install(CORS) {
             anyHost()

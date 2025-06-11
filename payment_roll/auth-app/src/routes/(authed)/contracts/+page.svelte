@@ -14,7 +14,7 @@
             const userId = payload.sub;
             const res = await payroll.get(`/employees/${userId}/contracts`)
             contracts = res.data;
-        } catch (err) {
+        } catch (err) { 
             console.error("Error fetching contracts:", err);
         }
     });

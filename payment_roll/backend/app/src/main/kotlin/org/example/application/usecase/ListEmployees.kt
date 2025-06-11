@@ -1,6 +1,8 @@
 package org.example.application.usecase
 
 import kotlinx.serialization.Serializable
+import org.example.domain.employee.Gender
+import org.example.domain.employee.MaritalStatus
 import org.example.infra.repository.EmployeeDao
 import org.example.infra.ktor.LocalDateSerializer
 import org.example.infra.ktor.UUIDSerializer
@@ -13,7 +15,7 @@ class ListEmployees(
     private val jwtService: JwtService
 ) {
     fun execute(accessToken: String): List<ListEmployeeByIDOutput> {
-        jwtService.isValid(accessToken)
+//        jwtService.isValid(accessToken)
         val output = mutableListOf<ListEmployeeByIDOutput>()
         employeeDao.findAll().map { employee ->
             output.add(
@@ -21,7 +23,12 @@ class ListEmployees(
                     id = employee.id,
                     name = employee.name,
                     document = employee.document,
-                    birthDate = employee.birthDate
+                    birthDate = employee.birthDate,
+                    identity = employee.identity,
+                    maritalStatus = employee.maritalStatus,
+                    gender = employee.gender,
+                    motherName = employee.motherName,
+                    fatherName = employee.fatherName
                 )
             )
         }
@@ -38,5 +45,10 @@ data class ListEmployeeByIDOutput(
     val name: String,
     val document: String,
     @Serializable(with = LocalDateSerializer::class)
-    val birthDate: LocalDate
+    val birthDate: LocalDate,
+    val identity: String,
+    val maritalStatus: MaritalStatus,
+    val gender: Gender,
+    val motherName: String,
+    val fatherName: String?
 )

@@ -12,5 +12,10 @@ export type Employee = {
     id: string,
     name: string,
     document: string,
-    birthDate: string
+    birthDate: string,
+    identity: string,
+    maritalStatus: string,
+    gender: string,
+    motherName: string,
+    fatherName: string | null,
 }

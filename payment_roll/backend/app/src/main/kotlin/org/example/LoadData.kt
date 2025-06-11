@@ -3,6 +3,8 @@ package org.example
 import org.example.domain.employee.Contract
 import org.example.domain.employee.ContractType
 import org.example.domain.employee.Employee
+import org.example.domain.employee.Gender
+import org.example.domain.employee.MaritalStatus
 import org.example.infra.repository.EmployeeDao
 import java.time.LocalDate
 import java.util.UUID
@@ -14,7 +16,12 @@ class LoadData(employeeDao: EmployeeDao) {
             UUID.fromString("805a852d-61e8-4a07-9e1f-02141ae74e94"),
             "John Doe",
             "123.456.789-00",
-            LocalDate.of(1990, 1, 1)
+            LocalDate.of(1990, 1, 1),
+            "123456789",
+            MaritalStatus.single,
+            Gender.male,
+            "Mary Doe",
+            "Peter Doe"
         )
         employee.addContract(
             Contract(
@@ -45,7 +52,12 @@ class LoadData(employeeDao: EmployeeDao) {
                 UUID.fromString("f2d3b4c5-6a7b-8c9d-0e1f-2a3b4c5d6e7f"),
                 "Jane Smith",
                 "987.654.321-00",
-                LocalDate.of(1995, 5, 15)
+                LocalDate.of(1995, 5, 15),
+                "987654321",
+                MaritalStatus.married,
+                Gender.female,
+                "Alice Smith",
+                "Bob Smith"
             )
         )
 
@@ -54,7 +66,12 @@ class LoadData(employeeDao: EmployeeDao) {
                 UUID.fromString("a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d"),
                 "Peter Jones",
                 "111.222.333-44",
-                LocalDate.of(1988, 11, 30)
+                LocalDate.of(1988, 11, 30),
+                "111222333",
+                MaritalStatus.divorced,
+                Gender.male,
+                "Nancy Jones",
+                "David Jones"
             )
         )
 
@@ -63,7 +80,12 @@ class LoadData(employeeDao: EmployeeDao) {
                 UUID.fromString("f9e8d7c6-b5a4-3b2c-1d0e-f9a8b7c6d5e4"),
                 "Mary Brown",
                 "555.666.777-88",
-                LocalDate.of(2000, 7, 22)
+                LocalDate.of(2000, 7, 22),
+                "555666777",
+                MaritalStatus.widowed,
+                Gender.female,
+                "Susan Brown",
+                null
             )
         )
     }
