@@ -19,3 +19,12 @@ export type Employee = {
     motherName: string,
     fatherName: string | null,
 }
+
+export type Organization = {
+    id: string,
+    name: string,
+    cnpj: string,
+    sigla: string,
+    parentId: string | null,
+    createdAt: string
+}

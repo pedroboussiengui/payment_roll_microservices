@@ -1,4 +1,4 @@
-package org.example
+package org.example.infra.ktor.routes
 
 import org.example.domain.employee.Contract
 import org.example.domain.employee.ContractType

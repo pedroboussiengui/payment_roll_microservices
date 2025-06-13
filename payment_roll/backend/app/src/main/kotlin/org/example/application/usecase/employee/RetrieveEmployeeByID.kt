@@ -1,4 +1,4 @@
-package org.example.application.usecase
+package org.example.application.usecase.employee
 
 import kotlinx.serialization.Serializable
 import org.example.domain.employee.Employee

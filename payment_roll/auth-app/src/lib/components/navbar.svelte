@@ -19,6 +19,7 @@
     <ol class="flex space-x-6">
         <li><a href="/home">Home</a></li>
         <li><a href="/employees">Employees</a></li>
+        <li><a href="/organizations">Organizations</a></li>
     </ol>
 
     <div class="flex items-center gap-x-4">
