@@ -9,9 +9,11 @@ import io.ktor.server.routing.get
 import org.example.ACCESS_TOKEN_KEY
 import org.example.application.usecase.organization.CreateOrganization
 import org.example.application.usecase.organization.CreateOrganizationInput
+import org.example.application.usecase.organization.DetailOrganizationById
 import org.example.application.usecase.organization.ListOrganizations
 import org.example.domain.organization.Organization
 import org.example.infra.jwt.Auth0JwtService
+import org.example.infra.ktor.uuid
 import org.example.infra.repository.InMemoryOrganizationRepository
 import org.example.infra.repository.OrganizationRepository
 import java.time.LocalDate
@@ -22,6 +24,11 @@ fun Route.organizationRoute() {
     val jwtService = Auth0JwtService()
     val createOrganization = CreateOrganization(organizationRepository, jwtService)
     val listOrganizations = ListOrganizations(organizationRepository, jwtService)
+    val detailOrganizationById = DetailOrganizationById(organizationRepository, jwtService)
+
+    // add department to organization
+    // return departments
+
 
     LoadOrganizations(organizationRepository)
 
@@ -34,6 +41,12 @@ fun Route.organizationRoute() {
     get("/organizations") {
         val accessToken = call.attributes[ACCESS_TOKEN_KEY]
         val output = listOrganizations.execute(accessToken)
+        call.respond(HttpStatusCode.OK, output)
+    }
+    get("/organizations/{organizationId}") {
+        val accessToken = call.attributes[ACCESS_TOKEN_KEY]
+        val organizationId = call.parameters.uuid("organizationId")
+        val output = detailOrganizationById.execute(organizationId!!, accessToken)
         call.respond(HttpStatusCode.OK, output)
     }
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
     import Navbar from "$lib/components/navbar.svelte";
     import payroll from "$lib/services/axios/payroll";
     import type { Organization } from "$lib/types";
@@ -19,7 +20,7 @@
     });
 
     async function detailOrganization(id: string) {
-        console.log('Dataling');
+        goto(`/organizations/${id}`)
     }
 
     async function addOrganization() {

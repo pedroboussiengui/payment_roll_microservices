@@ -24,6 +24,7 @@ import org.example.infra.jwt.Auth0JwtService
 import org.example.infra.ktor.exceptionsHandler.Problem
 import org.example.infra.ktor.exceptionsHandler.authenticationExceptions
 import org.example.infra.ktor.exceptionsHandler.employeeExceptions
+import org.example.infra.ktor.exceptionsHandler.organizationExceptions
 import org.example.infra.ktor.routes.employeeRoute
 import org.example.infra.ktor.routes.organizationRoute
 import org.example.infra.repository.EmployeeDao
@@ -59,6 +60,7 @@ fun main() {
         install(StatusPages) {
             authenticationExceptions()
             employeeExceptions()
+            organizationExceptions()
             exception<BadRequestException> { call, cause ->
                 call.respond(HttpStatusCode.BadRequest, Problem(
                     title = "BadRequest",

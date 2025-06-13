@@ -1,5 +1,7 @@
 package org.example.infra.ktor
 
+import io.ktor.http.Parameters
+import io.ktor.server.plugins.BadRequestException
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -32,3 +34,12 @@ object LocalDateSerializer : KSerializer<LocalDate> {
         encoder.encodeString(value.toString())
     }
 }
+
+fun Parameters.uuid(input: String): UUID? =
+    this[input]?.let {
+        try {
+            UUID.fromString(it)
+        } catch (_: IllegalArgumentException) {
+            throw BadRequestException("Parameter must be a valid UUID")
+        }
+    }

@@ -6,6 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 import org.example.ACCESS_TOKEN_KEY
 import org.example.application.usecase.employee.AddEmployee
 import org.example.application.usecase.employee.AddEmployeeInput
@@ -25,26 +26,31 @@ fun Route.employeeRoute() {
 
     LoadData(employeeDao)
 
-    get("/employees") {
-        val accessToken = call.attributes[ACCESS_TOKEN_KEY]
-        val output = listEmployees.execute(accessToken)
-        call.respond(output)
-    }
-    get("/employees/{employeeId}") {
-        val accessToken = call.attributes[ACCESS_TOKEN_KEY]
-        val employeeId = call.parameters["employeeId"]
-        val output = retrieveEmployeeByID.execute(employeeId!!, accessToken)
-        call.respond(output)
-    }
-    get("/employees/{employeeId}/contracts") {
-        val employeeId = call.parameters["employeeId"]
-        val output = listEmployeeContracts.execute(employeeId!!)
-        call.respond(output)
-    }
-    post("/employees") {
-        val accessToken = call.attributes[ACCESS_TOKEN_KEY]
-        val input = call.receive<AddEmployeeInput>()
-        val output = addEmployee.execute(input, accessToken)
-        call.respond(HttpStatusCode.Created, output)
+    route("/employees") {
+        get {
+            val accessToken = call.attributes[ACCESS_TOKEN_KEY]
+            val output = listEmployees.execute(accessToken)
+            call.respond(output)
+        }
+        get("/{employeeId}") {
+            val accessToken = call.attributes[ACCESS_TOKEN_KEY]
+            val employeeId = call.parameters["employeeId"]
+            val output = retrieveEmployeeByID.execute(employeeId!!, accessToken)
+            call.respond(output)
+        }
+        get("/{employeeId}/contracts") {
+            val employeeId = call.parameters["employeeId"]
+            val output = listEmployeeContracts.execute(employeeId!!)
+            call.respond(output)
+        }
+        post {
+            val accessToken = call.attributes[ACCESS_TOKEN_KEY]
+            val input = call.receive<AddEmployeeInput>()
+            val output = addEmployee.execute(input, accessToken)
+            call.respond(HttpStatusCode.Created, output)
+        }
+//        get("/{employeeId}/contracts/{contractId}") {
+//            val accessToken = call.attributes[ACCESS_TOKEN_KEY]
+//        }
     }
 }
