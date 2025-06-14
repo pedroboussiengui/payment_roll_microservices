@@ -14,8 +14,8 @@ import org.example.application.usecase.organization.ListOrganizations
 import org.example.domain.organization.Organization
 import org.example.infra.jwt.Auth0JwtService
 import org.example.infra.ktor.uuid
-import org.example.infra.repository.InMemoryOrganizationRepository
-import org.example.infra.repository.OrganizationRepository
+import org.example.infra.repository.organization.InMemoryOrganizationRepository
+import org.example.infra.repository.organization.OrganizationRepository
 import java.time.LocalDate
 import java.util.UUID
 
@@ -28,7 +28,6 @@ fun Route.organizationRoute() {
 
     // add department to organization
     // return departments
-
 
     LoadOrganizations(organizationRepository)
 

@@ -16,7 +16,7 @@ enum class Gender {
 }
 
 data class Employee(
-    val id: UUID,
+    val id: UUID?,
     val name: String,
     val document: String,
     val birthDate: LocalDate,
@@ -32,7 +32,7 @@ data class Employee(
             id: String,
             name: String,
             document: String,
-            birthDate: String,
+            birthDate: LocalDate,
             identity: String,
             maritalStatus: MaritalStatus,
             gender: Gender,
@@ -40,7 +40,6 @@ data class Employee(
             fatherName: String?
         ): Employee {
             val userId = UUID.fromString(id)
-            val birthDate = LocalDate.parse(birthDate)
             return Employee(
                 userId,
                 name,
@@ -57,17 +56,16 @@ data class Employee(
         fun create(
             name: String,
             document: String,
-            birthDate: String,
+            birthDate: LocalDate,
             identity: String,
             maritalStatus: MaritalStatus,
             gender: Gender,
             motherName: String,
             fatherName: String?
         ): Employee {
-            val userId = UUID.randomUUID()
-            val birthDate = LocalDate.parse(birthDate)
+//            val userId = UUID.randomUUID()
             return Employee(
-                userId,
+                null,
                 name,
                 document,
                 birthDate,

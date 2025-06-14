@@ -6,17 +6,19 @@ import org.example.domain.employee.EmployeeExceptions
 import org.example.domain.employee.Gender
 import org.example.domain.employee.MaritalStatus
 import org.example.infra.jwt.JwtService
-import org.example.infra.repository.EmployeeDao
+import org.example.infra.ktor.LocalDateSerializer
 import org.example.infra.ktor.UUIDSerializer
-import java.util.UUID
+import org.example.infra.repository.employee.EmployeeRepository
+import java.time.LocalDate
+import java.util.*
 
 class AddEmployee(
-    private val employeeDao: EmployeeDao,
+    private val employeeRepository: EmployeeRepository,
     private val jwtService: JwtService
 ) {
     fun execute(input: AddEmployeeInput, accessToken: String): AddEmployeeOutput {
 //        jwtService.isValid(accessToken)
-        employeeDao.findByDocument(input.document)?.let {
+        employeeRepository.findByDocument(input.document)?.let {
             throw EmployeeExceptions.UnicityViolation("Employee with given document already exists")
         }
         val employee = Employee.create(
@@ -36,8 +38,10 @@ class AddEmployee(
                 validationResult
             )
         }
-        employeeDao.add(employee)
-        return AddEmployeeOutput(employee.id)
+//        employeeDao.add(employee)
+//        return AddEmployeeOutput(employee.id)
+        val generatedId = employeeRepository.add(employee)
+        return AddEmployeeOutput(generatedId)
     }
 }
 
@@ -45,7 +49,8 @@ class AddEmployee(
 data class AddEmployeeInput(
     val name: String,
     val document: String,
-    val birthDate: String,
+    @Serializable(with = LocalDateSerializer::class)
+    val birthDate: LocalDate,
     val identity: String,
     val maritalStatus: MaritalStatus,
     val gender: Gender,
@@ -56,5 +61,5 @@ data class AddEmployeeInput(
 @Serializable
 data class AddEmployeeOutput(
     @Serializable(with = UUIDSerializer::class)
-    val id: UUID
+    val employeeId: UUID
 )

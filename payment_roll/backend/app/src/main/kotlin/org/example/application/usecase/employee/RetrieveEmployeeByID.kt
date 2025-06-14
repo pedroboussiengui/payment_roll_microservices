@@ -6,23 +6,23 @@ import org.example.domain.employee.EmployeeExceptions
 import org.example.domain.employee.Gender
 import org.example.domain.employee.MaritalStatus
 import org.example.infra.jwt.JwtService
-import org.example.infra.repository.EmployeeDao
 import org.example.infra.ktor.LocalDateSerializer
 import org.example.infra.ktor.UUIDSerializer
+import org.example.infra.repository.employee.EmployeeRepository
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 class RetrieveEmployeeByID(
-    private val employeeDao: EmployeeDao,
+    private val employeeRepository: EmployeeRepository,
     private val jwtService: JwtService
 ) {
-    fun execute(employeeId: String, accessToken: String): RetrieveEmployeeByIDOutput {
+    fun execute(employeeId: UUID, accessToken: String): RetrieveEmployeeByIDOutput {
 //        jwtService.isValid(accessToken)
-        val employee: Employee = employeeDao.findById(employeeId)
+        val employee: Employee = employeeRepository.findById(employeeId)
             ?: throw EmployeeExceptions.NotFound()
 
         return RetrieveEmployeeByIDOutput(
-            id = employee.id,
+            id = employee.id!!,
             name = employee.name,
             document = employee.document,
             birthDate = employee.birthDate,

@@ -8,7 +8,14 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import org.example.application.usecase.employee.AdmissionEventOutputDTO
+import org.example.application.usecase.employee.AfastamentoEventOutputDTO
+import org.example.application.usecase.employee.EventOutputDTO
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 object UUIDSerializer : KSerializer<UUID> {
@@ -32,6 +39,27 @@ object LocalDateSerializer : KSerializer<LocalDate> {
 
     override fun serialize(encoder: Encoder, value: LocalDate) {
         encoder.encodeString(value.toString())
+    }
+}
+
+object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("LocalDateTime", PrimitiveKind.STRING)
+
+    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+
+    override fun deserialize(decoder: Decoder): LocalDateTime {
+        return LocalDateTime.parse(decoder.decodeString(), formatter)
+    }
+
+    override fun serialize(encoder: Encoder, value: LocalDateTime) {
+        encoder.encodeString(value.format(formatter))
+    }
+}
+
+val eventsModule = SerializersModule {
+    polymorphic(EventOutputDTO::class) {
+        subclass(AdmissionEventOutputDTO::class, AdmissionEventOutputDTO.serializer())
+        subclass(AfastamentoEventOutputDTO::class, AfastamentoEventOutputDTO.serializer())
     }
 }
 

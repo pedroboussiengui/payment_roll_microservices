@@ -3,24 +3,24 @@ package org.example.application.usecase.employee
 import kotlinx.serialization.Serializable
 import org.example.domain.employee.Gender
 import org.example.domain.employee.MaritalStatus
-import org.example.infra.repository.EmployeeDao
+import org.example.infra.jwt.JwtService
 import org.example.infra.ktor.LocalDateSerializer
 import org.example.infra.ktor.UUIDSerializer
-import org.example.infra.jwt.JwtService
+import org.example.infra.repository.employee.EmployeeRepository
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 class ListEmployees(
-    private val employeeDao: EmployeeDao,
+    private val employeeRepository: EmployeeRepository,
     private val jwtService: JwtService
 ) {
     fun execute(accessToken: String): List<ListEmployeeByIDOutput> {
 //        jwtService.isValid(accessToken)
         val output = mutableListOf<ListEmployeeByIDOutput>()
-        employeeDao.findAll().map { employee ->
+        employeeRepository.findAll().map { employee ->
             output.add(
                 ListEmployeeByIDOutput(
-                    id = employee.id,
+                    id = employee.id!!,
                     name = employee.name,
                     document = employee.document,
                     birthDate = employee.birthDate,

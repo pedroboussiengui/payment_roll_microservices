@@ -19,6 +19,8 @@ repositories {
     mavenCentral()
 }
 
+val exposedVersion = "0.61.0"
+
 dependencies {
     // Use JUnit Jupiter for testing.
     testImplementation(libs.junit.jupiter)
@@ -37,6 +39,16 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages:3.1.1")
     implementation("io.ktor:ktor-server-cors:3.1.1")
     implementation("com.auth0:java-jwt:4.5.0") // jwt utility
+
+    // database
+    implementation("org.jetbrains.exposed:exposed-core:${exposedVersion}")
+    implementation("org.jetbrains.exposed:exposed-jdbc:${exposedVersion}") // this is mandatory!!
+    implementation("org.jetbrains.exposed:exposed-java-time:${exposedVersion}") // to time like timestamp
+    implementation("com.h2database:h2:2.2.224")
+
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
+
+    testImplementation(kotlin("test"))
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

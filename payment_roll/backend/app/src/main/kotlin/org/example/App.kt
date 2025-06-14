@@ -9,25 +9,22 @@ import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.json.Json
 import org.example.application.exceptions.AuthenticationException
-import org.example.application.usecase.employee.AddEmployee
-import org.example.application.usecase.employee.AddEmployeeInput
-import org.example.application.usecase.employee.ListEmployeeContracts
-import org.example.application.usecase.employee.ListEmployees
-import org.example.application.usecase.employee.RetrieveEmployeeByID
-import org.example.infra.jwt.Auth0JwtService
+import org.example.infra.ktor.eventsModule
 import org.example.infra.ktor.exceptionsHandler.Problem
 import org.example.infra.ktor.exceptionsHandler.authenticationExceptions
 import org.example.infra.ktor.exceptionsHandler.employeeExceptions
 import org.example.infra.ktor.exceptionsHandler.organizationExceptions
 import org.example.infra.ktor.routes.employeeRoute
+import org.example.infra.ktor.routes.eventsRoute
 import org.example.infra.ktor.routes.organizationRoute
-import org.example.infra.repository.EmployeeDao
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.transactions.TransactionManager
+import java.sql.Connection
 
 val ACCESS_TOKEN_KEY = AttributeKey<String>("AccessToken")
 val JwtAuthPlugin = createRouteScopedPlugin("jwtAuthPlugin") {
@@ -42,11 +39,14 @@ val JwtAuthPlugin = createRouteScopedPlugin("jwtAuthPlugin") {
 }
 
 fun main() {
+
     embeddedServer(Netty, port = 8081) {
         install(ContentNegotiation) {
             json(Json {
                 encodeDefaults = true
                 explicitNulls = false
+                serializersModule = eventsModule
+                classDiscriminator = "type"
             })
         }
         install(CORS) {
@@ -72,6 +72,7 @@ fun main() {
         routing {
             employeeRoute()
             organizationRoute()
+            eventsRoute()
         }
     }.start(wait = true)
 }

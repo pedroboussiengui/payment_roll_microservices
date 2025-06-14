@@ -11,3 +11,12 @@ sealed class EmployeeExceptions(
     class BusinessRuleViolation(reason: String, val violations: List<String> = emptyList()) :
         RuntimeException(reason)
 }
+
+sealed class ContractExceptions(
+    override val message: String
+) : RuntimeException(message) {
+
+    class ContractNotFound : RuntimeException("Contract was not found")
+
+    class UnableHandleEvent(reason: String) : RuntimeException(reason)
+}

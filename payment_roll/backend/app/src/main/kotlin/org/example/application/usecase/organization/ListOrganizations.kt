@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import org.example.infra.jwt.JwtService
 import org.example.infra.ktor.LocalDateSerializer
 import org.example.infra.ktor.UUIDSerializer
-import org.example.infra.repository.OrganizationRepository
+import org.example.infra.repository.organization.OrganizationRepository
 import java.time.LocalDate
 import java.util.UUID
 

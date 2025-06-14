@@ -3,6 +3,7 @@ package org.example.infra.ktor.exceptionsHandler
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.statuspages.StatusPagesConfig
 import io.ktor.server.response.respond
+import org.example.domain.employee.ContractExceptions
 import org.example.domain.employee.EmployeeExceptions
 
 fun StatusPagesConfig.employeeExceptions() {
@@ -28,4 +29,12 @@ fun StatusPagesConfig.employeeExceptions() {
             status = HttpStatusCode.Conflict.value
         ))
     }
+    exception<ContractExceptions.ContractNotFound> { call, cause ->
+        call.respond(HttpStatusCode.NotFound, Problem(
+            title = "Contract not found",
+            detail = cause.message!!,
+            status = HttpStatusCode.NotFound.value
+        ))
+    }
+
 }
