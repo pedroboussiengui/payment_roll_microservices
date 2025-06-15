@@ -13,7 +13,7 @@ class ListOrganizations(
     private val jwtService: JwtService
 ) {
     fun execute(accessToken: String): List<ListOrganizationsOutput> {
-//        jwtService.isValid(accessToken)
+        jwtService.isValid(accessToken)
         val output = mutableListOf<ListOrganizationsOutput>()
         organizationRepository.findAll().map { organization ->
             output.add(

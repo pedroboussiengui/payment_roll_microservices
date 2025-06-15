@@ -17,7 +17,7 @@ class RetrieveEmployeeByID(
     private val jwtService: JwtService
 ) {
     fun execute(employeeId: UUID, accessToken: String): RetrieveEmployeeByIDOutput {
-//        jwtService.isValid(accessToken)
+        jwtService.isValid(accessToken)
         val employee: Employee = employeeRepository.findById(employeeId)
             ?: throw EmployeeExceptions.NotFound()
 

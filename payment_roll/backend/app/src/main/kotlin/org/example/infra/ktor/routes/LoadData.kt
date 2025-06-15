@@ -1,6 +1,7 @@
 //package org.example.infra.ktor.routes
 //
 //import org.example.domain.employee.Contract
+//import org.example.domain.employee.ContractState
 //import org.example.domain.employee.ContractType
 //import org.example.domain.employee.Employee
 //import org.example.domain.employee.Gender
@@ -29,6 +30,7 @@
 //                "2025001",
 //                LocalDate.of(2025, 1, 1),
 //                ContractType.celetista,
+//                ContractState.Active,
 //                "Software Engineer",
 //                "Backend Developer",
 //                "IT"

@@ -51,8 +51,10 @@ import io.ktor.server.request.receive
 import kotlinx.serialization.Serializable
 import org.example.application.AuthenticationException
 import org.example.application.SessionExpiredException
+import org.example.application.usecase.ContractInput
 import org.example.application.usecase.GetSession
 import org.example.application.usecase.GetTokens
+import org.example.application.usecase.ListUserContracts
 import org.example.application.usecase.UserRegistrationWithIdInput
 
 @Serializable
@@ -84,6 +86,7 @@ fun main() {
     val retrieveSessionByID = RetrieveSessionByID(inMemoryDao)
     val refreshToken = RefreshToken(userRepository, inMemoryDao, passwordHash)
     val getSession = GetSession(inMemoryDao)
+    val listUserContracts = ListUserContracts(userRepository)
 
     val output = userRegistration.execute(
         UserRegistrationWithIdInput(
@@ -93,7 +96,14 @@ fun main() {
             "pedro@email.com")
     )
 
-    addUserContract.execute(output.userId, "0042d963-6c54-4c9f-a60c-bfcde866d29e")
+    addUserContract.execute(output.userId,
+        ContractInput(
+            id = "0042d963-6c54-4c9f-a60c-bfcde866d29e",
+            matricula = "123456",
+            organization = "Organization A",
+            department = "Department X"
+        )
+    )
 
     embeddedServer(Netty, port = 8080) {
         install(ContentNegotiation) {
@@ -187,6 +197,36 @@ fun main() {
                 val username = formParameters["username"].toString()
                 val password = formParameters["password"].toString()
 
+                try {
+                    val result = login.execute(LoginInput(username, password))
+
+                    call.response.cookies.append(
+                        "isAuth",
+                        "1",
+                        path = "/",
+                        httpOnly = true,
+                        secure = true,
+                        maxAge = 120,
+                        extensions = mapOf("SameSite" to "Lax")
+                    )
+                    call.response.cookies.append(
+                        "authToken",
+                        result.token,
+                        path = "/",
+                        httpOnly = true,
+                        secure = true,
+                        maxAge = 120,
+                        extensions = mapOf("SameSite" to "Lax")
+                    )
+//                    call.respondRedirect("http://localhost:5173/callback?token=${result.token}")
+                    call.respondRedirect("http://localhost:5173/contracts")
+                } catch (e: Exception) {
+                    call.respondRedirect("/auth?error=1")
+                }
+            }
+            post("/authenticate") {
+                val input = call.receive<LoginInput>()
+                val output = login.execute(LoginInput(input.username, input.password))
                 call.response.cookies.append(
                     "isAuth",
                     "1",
@@ -196,27 +236,33 @@ fun main() {
                     maxAge = 120,
                     extensions = mapOf("SameSite" to "Lax")
                 )
-
-                try {
-                    val result = login.execute(LoginInput(username, password))
-                    call.respondRedirect("http://localhost:5173/callback?token=${result.token}")
-                } catch (e: Exception) {
-                    call.respondRedirect("/auth?error=1")
-                }
+                call.response.cookies.append(
+                    "authToken",
+                    output.token,
+                    path = "/",
+                    httpOnly = true,
+                    secure = true,
+                    maxAge = 120,
+                    extensions = mapOf("SameSite" to "Lax")
+                )
+                call.respond(HttpStatusCode.OK, output)
             }
-            post("/authenticate") {
-                val input = call.receive<LoginInput>()
-                val output = login.execute(LoginInput(input.username, input.password))
+            get("/user-contracts") {
+                val authToken = call.request.cookies["authToken"]
+                    ?: throw Exception("AuthToken token is missing")
+                val output = listUserContracts.execute(authToken)
                 call.respond(HttpStatusCode.OK, output)
             }
             post("/tokens/{contractId}") {
-                val partialToken = call.request.headers["Authorization"]
-                    ?: throw AuthenticationException.MissingToken()
+//                val partialToken = call.request.headers["Authorization"]
+//                    ?: throw AuthenticationException.MissingToken()
+                val authToken = call.request.cookies["authToken"]
+                    ?: throw Exception("AuthToken token is missing")
 
                 val contractId = call.parameters["contractId"]
                     ?: throw BadRequestException("Contract ID is mandatory")
 
-                val input = GetTokensInput(partialToken, contractId)
+                val input = GetTokensInput(authToken, contractId)
                 val output = getTokens.execute(input)
 
                 call.response.cookies.append(
@@ -257,7 +303,7 @@ fun main() {
                     httpOnly = true,
                     secure = true,
                     maxAge = output.remainTtl,
-                    extensions = mapOf("SameSite" to "None")
+                    extensions = mapOf("SameSite" to "Lax")
                 )
 
                 call.respond(HttpStatusCode.OK, mapOf(

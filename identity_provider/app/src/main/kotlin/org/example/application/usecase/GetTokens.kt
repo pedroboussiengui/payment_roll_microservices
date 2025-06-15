@@ -30,7 +30,7 @@ class GetTokens(
         val user = userRepository.findById(UUID.fromString(userId))
             ?: throw UserNotFoundByIdException(userId)
 
-        if (!user.contracts.contains(UUID.fromString(input.contractId ))) {
+        if (!user.hasContract(UUID.fromString(input.contractId ))) {
             throw Exception("Invalid contract to set")
         }
 

@@ -15,7 +15,8 @@ class ListEmployees(
     private val jwtService: JwtService
 ) {
     fun execute(accessToken: String): List<ListEmployeeByIDOutput> {
-//        jwtService.isValid(accessToken)
+        // validate accessToken
+        jwtService.isValid(accessToken)
         val output = mutableListOf<ListEmployeeByIDOutput>()
         employeeRepository.findAll().map { employee ->
             output.add(

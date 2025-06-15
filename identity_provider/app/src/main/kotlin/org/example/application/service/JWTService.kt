@@ -42,7 +42,8 @@ class JWTService {
     fun generatePartialToken(user: User): String {
         return JWT.create() // RFC 7519: JSON Web Token (JWT)
             .withIssuer(issuer)
-            // .issuedAt
+            .withAudience("identity_provider")
+            .withIssuedAt(Date.from(Instant.now()))
             .withSubject(user.userId.toString())
             .withClaim("type", "partial_token")
             .withClaim("name", user.username)
@@ -53,7 +54,8 @@ class JWTService {
     fun generateAccessToken(user: User, contractId: String, instant: Instant): String {
         return JWT.create()
             .withIssuer(issuer)
-            // issuedAt
+            .withAudience("payroll_backend")
+            .withIssuedAt(Date.from(Instant.now()))
             .withSubject(user.userId.toString())
             .withClaim("type", "access_token")
             .withClaim("name", user.username)

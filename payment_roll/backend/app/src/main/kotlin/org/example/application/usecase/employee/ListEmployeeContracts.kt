@@ -5,6 +5,7 @@ import org.example.domain.employee.ContractState
 import org.example.domain.employee.ContractType
 import org.example.domain.employee.Employee
 import org.example.domain.employee.EmployeeExceptions
+import org.example.infra.jwt.JwtService
 import org.example.infra.ktor.LocalDateSerializer
 import org.example.infra.ktor.UUIDSerializer
 import org.example.infra.repository.employee.EmployeeRepository
@@ -12,9 +13,12 @@ import java.time.LocalDate
 import java.util.*
 
 class ListEmployeeContracts(
-    private val employeeRepository: EmployeeRepository
+    private val employeeRepository: EmployeeRepository,
+    private val jwtService: JwtService
 ) {
-    fun execute(employeeId: UUID): List<EmployeeContractOutput> {
+    fun execute(employeeId: UUID, accessToken: String): List<EmployeeContractOutput> {
+        // validate accessToken
+        jwtService.isValid(accessToken)
         val employee: Employee = employeeRepository.findById(employeeId)
             ?: throw EmployeeExceptions.NotFound()
 

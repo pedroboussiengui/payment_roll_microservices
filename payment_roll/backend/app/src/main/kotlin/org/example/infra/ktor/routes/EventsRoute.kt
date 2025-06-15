@@ -14,7 +14,7 @@ import org.example.infra.repository.employee.EmployeeRepositoryImpl
 fun Route.eventsRoute() {
     val employeeRepository = EmployeeRepositoryImpl()
     val jwtService = Auth0JwtService()
-    val afastamento = Afastamento(employeeRepository)
+    val afastamento = Afastamento(employeeRepository, jwtService)
 
     route("/employees/{employeeId}/contracts/{contractId}/afastamento") {
         post {
@@ -22,7 +22,7 @@ fun Route.eventsRoute() {
             val employeeId = call.parameters.uuid("employeeId")
             val contractId = call.parameters.uuid("contractId")
             val input = call.receive<AfastamentoInput>()
-            val output = afastamento.execute(employeeId!!, contractId!!, input)
+            val output = afastamento.execute(employeeId!!, contractId!!, input, accessToken)
             call.respond(HttpStatusCode.OK, output)
         }
     }

@@ -87,7 +87,7 @@
         payroll.post('/employees', data)
             .then((res) => {
                 console.log(res.data);
-                goto(`/employees/${res.data.id}`)
+                goto(`/employees/${res.data.employeeId}`)
             })
             .catch((err) => {
                 console.log(err);

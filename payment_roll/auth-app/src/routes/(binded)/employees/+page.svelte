@@ -13,7 +13,10 @@
     onMount(async () => {
         await payroll.get('/employees')
             .then((res) => {
-                employees = res.data as Employee[];
+                console.log(res.data);
+                employees = res.data;
+                console.log(employees.length);
+                console.log(employees.at(0));
             })
             .catch((err) => {
                 console.log(err.response.data);
@@ -46,41 +49,45 @@
     </button>
 </div>
 
-<input
-    type="text"
-    bind:value={nameSearch}
-    placeholder="Search by name..."
-    class="mb-4 p-2 border border-gray-300 rounded"
-/>
+{#if employees.length === 0}
+	<p>No employees were found</p>
+{:else}
+    <input
+        type="text"
+        bind:value={nameSearch}
+        placeholder="Search by name..."
+        class="mb-4 p-2 border border-gray-300 rounded"
+    />
 
-<table class="min-w-full table-auto border border-gray-300">
-    <thead>
-        <tr class="bg-gray-100">
-            <th class="border border-gray-300 px-4 py-2 text-left font-semibold text-gray-700">
-                Name
-            </th>
-            <th class="border border-gray-300 px-4 py-2 text-left font-semibold text-gray-700">
-                Document
-            </th>
-            <th class="border border-gray-300 px-4 py-2 text-left font-semibold text-gray-700">
-                Actions
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        {#each filteredEmployees as employee}
-            <tr>
-                <td class="border border-gray-300 px-4 py-2">{employee.name}</td>
-                <td class="border border-gray-300 px-4 py-2">{employee.document}</td>
-                <td class="border border-gray-300 px-4 py-2">
-                    <button
-                        class="text-blue-600 hover:text-blue-800"
-                        on:click={() => detailEmployee(employee.id)}
-                        title="View employee details">
-                        <Icon src="{Eye}" solid size="16" />
-                    </button>
-                </td>
+    <table class="min-w-full table-auto border border-gray-300">
+        <thead>
+            <tr class="bg-gray-100">
+                <th class="border border-gray-300 px-4 py-2 text-left font-semibold text-gray-700">
+                    Name
+                </th>
+                <th class="border border-gray-300 px-4 py-2 text-left font-semibold text-gray-700">
+                    Document
+                </th>
+                <th class="border border-gray-300 px-4 py-2 text-left font-semibold text-gray-700">
+                    Actions
+                </th>
             </tr>
-        {/each}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {#each filteredEmployees as employee}
+                <tr>
+                    <td class="border border-gray-300 px-4 py-2">{employee.name}</td>
+                    <td class="border border-gray-300 px-4 py-2">{employee.document}</td>
+                    <td class="border border-gray-300 px-4 py-2">
+                        <button
+                            class="text-blue-600 hover:text-blue-800"
+                            on:click={() => detailEmployee(employee.id)}
+                            title="View employee details">
+                            <Icon src="{Eye}" solid size="16" />
+                        </button>
+                    </td>
+                </tr>
+            {/each}
+        </tbody>
+    </table>
+{/if}

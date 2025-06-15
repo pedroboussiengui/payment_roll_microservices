@@ -7,13 +7,13 @@ const idp = axios.create({
     withCredentials: true
 });
 
-idp.interceptors.request.use((config) => {
-    const token = get(accessToken);
-    if (token) {
-        // not pass as Bearer
-        config.headers.Authorization = token;
-    }
-    return config
-}, Promise.reject);
+// idp.interceptors.request.use((config) => {
+//     const token = get(accessToken);
+//     if (token) {
+//         // not pass as Bearer
+//         config.headers.Authorization = token;
+//     }
+//     return config
+// }, Promise.reject);
 
 export default idp;

@@ -14,7 +14,7 @@ class DetailOrganizationById(
     private val jwtService: JwtService
 ) {
     fun execute(organizationId: UUID, accessToken: String): DetailOrganizationByIdOutput {
-//        jwtService.isValid(accessToken)
+        jwtService.isValid(accessToken)
         val organization = organizationRepository.findById(organizationId)
             ?: throw OrganizationExceptions.NotFound()
         return DetailOrganizationByIdOutput(

@@ -1,11 +1,21 @@
-export type Contract = {
+
+export type UserContract = {
+    id: string,
+    matricula: string,
+    organization: string,
+    department: string
+}
+
+export type EmployeeContract = {
     id: string,
     matricula: string,
     entryDate: string,
     contractType: string,
+    contractState: string,
     position: string,
     function: string,
     department: string,
+    possibleEvents: string[]
 }
 
 export type Employee = {
@@ -28,3 +38,22 @@ export type Organization = {
     parentId: string | null,
     createdAt: string
 }
+
+interface BaseEvent {
+    type: string;
+    eventType: string;
+    createdAt: string;
+}
+
+interface AdmissionEvent extends BaseEvent {
+    eventType: "Admission";
+    entryDate: string;
+    exerciseDate: string;
+}
+
+interface AfastamentoEvent extends BaseEvent {
+    eventType: "Afastamento";
+    reason: string;
+}
+
+export type ContractEvent = AdmissionEvent | AfastamentoEvent;

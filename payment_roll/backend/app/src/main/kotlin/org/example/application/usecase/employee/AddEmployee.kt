@@ -17,7 +17,7 @@ class AddEmployee(
     private val jwtService: JwtService
 ) {
     fun execute(input: AddEmployeeInput, accessToken: String): AddEmployeeOutput {
-//        jwtService.isValid(accessToken)
+        jwtService.isValid(accessToken)
         employeeRepository.findByDocument(input.document)?.let {
             throw EmployeeExceptions.UnicityViolation("Employee with given document already exists")
         }

@@ -12,7 +12,7 @@ class Login(
 ) {
     fun execute(login: LoginInput): LoginOutput {
         val user = userRepository.findByUsername(login.username)
-                        ?: throw AuthenticationException.CredentialsFailed()
+                ?: throw AuthenticationException.CredentialsFailed()
 
         val ok = passwordHash.check(login.password, user.password)
         if (!ok || user.username != login.username) {

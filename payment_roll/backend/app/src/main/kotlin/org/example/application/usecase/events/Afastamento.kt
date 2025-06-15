@@ -2,15 +2,19 @@ package org.example.application.usecase.events
 
 import kotlinx.serialization.Serializable
 import org.example.domain.employee.*
+import org.example.infra.jwt.JwtService
 import org.example.infra.ktor.LocalDateTimeSerializer
 import org.example.infra.repository.employee.EmployeeRepository
 import java.time.LocalDateTime
 import java.util.*
 
 class Afastamento(
-    private val employeeRepository: EmployeeRepository
+    private val employeeRepository: EmployeeRepository,
+    private val jwtService: JwtService
 ) {
-    fun execute(employeeId: UUID, contractId: UUID, input: AfastamentoInput): AfastamentoOutput {
+    fun execute(employeeId: UUID, contractId: UUID, input: AfastamentoInput, accessToken: String): AfastamentoOutput {
+        // validate accessToken
+        jwtService.isValid(accessToken)
         // check if employee and contract exists
         val employee: Employee = employeeRepository.findById(employeeId)
             ?: throw EmployeeExceptions.NotFound()

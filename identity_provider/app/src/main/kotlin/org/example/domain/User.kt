@@ -9,7 +9,7 @@ data class User(
     val password: String,
     val email: String,
     var status: UserStatus,
-    val contracts: MutableList<UUID> = mutableListOf(),
+    val contracts: MutableList<Contract> = mutableListOf(),
     val lastLoginAt: Instant? = null,
     val createdAt: Instant,
     val updatedAt: Instant? = null
@@ -47,8 +47,12 @@ data class User(
         }
     }
 
-    fun addContract(contractId: UUID) {
-        contracts.add(contractId)
+    fun addContract(contract: Contract) {
+        contracts.add(contract)
+    }
+
+    fun hasContract(contractId: UUID): Boolean {
+        return contracts.any { it.id == contractId }
     }
 
     fun activate() {

@@ -13,13 +13,13 @@ import org.example.infra.repository.employee.EmployeeRepositoryImpl
 fun Route.employeeRoute() {
     val employeeRepository = EmployeeRepositoryImpl()
     val jwtService = Auth0JwtService()
-    val listEmployeeContracts = ListEmployeeContracts(employeeRepository)
+    val listEmployeeContracts = ListEmployeeContracts(employeeRepository, jwtService)
     val retrieveEmployeeByID = RetrieveEmployeeByID(employeeRepository, jwtService)
     val listEmployees = ListEmployees(employeeRepository, jwtService)
     val addEmployee = AddEmployee(employeeRepository, jwtService)
     val detailEmployeeContract = DetailEmployeeContract(employeeRepository, jwtService)
-    val admission = Admission(employeeRepository)
-    val listContractEvents = ListContractEvents(employeeRepository)
+    val admission = Admission(employeeRepository, jwtService)
+    val listContractEvents = ListContractEvents(employeeRepository, jwtService)
 
 //    LoadData(employeeDao)
 
@@ -36,8 +36,9 @@ fun Route.employeeRoute() {
             call.respond(output)
         }
         get("/{employeeId}/contracts") {
+            val accessToken = call.attributes[ACCESS_TOKEN_KEY]
             val employeeId = call.parameters.uuid("employeeId")
-            val output = listEmployeeContracts.execute(employeeId!!)
+            val output = listEmployeeContracts.execute(employeeId!!, accessToken)
             call.respond(output)
         }
         post {
@@ -57,15 +58,16 @@ fun Route.employeeRoute() {
             val accessToken = call.attributes[ACCESS_TOKEN_KEY]
             val employeeId = call.parameters.uuid("employeeId")
             val input = call.receive<AdmissionInput>()
-            val output = admission.execute(employeeId!!, input)
+            val output = admission.execute(employeeId!!, input, accessToken)
             call.respond(HttpStatusCode.Created, output)
         }
         get("/{employeeId}/contracts/{contractId}/events") {
             val accessToken = call.attributes[ACCESS_TOKEN_KEY]
             val employeeId = call.parameters.uuid("employeeId")
             val contractId = call.parameters.uuid("contractId")
-            val output = listContractEvents.execute(employeeId!!, contractId!!)
+            val output = listContractEvents.execute(employeeId!!, contractId!!, accessToken)
             call.respond(HttpStatusCode.OK, output)
         }
     }
 }
+

@@ -7,8 +7,8 @@ import org.example.domain.employee.ContractEvent
 import org.example.domain.employee.ContractStateMachine
 import org.example.domain.employee.ContractType
 import org.example.domain.employee.EmployeeExceptions
-import org.example.domain.employee.Event
 import org.example.domain.employee.EventType
+import org.example.infra.jwt.JwtService
 import org.example.infra.ktor.LocalDateSerializer
 import org.example.infra.ktor.LocalDateTimeSerializer
 import org.example.infra.repository.employee.EmployeeRepository
@@ -17,9 +17,12 @@ import java.time.LocalDateTime
 import java.util.*
 
 class Admission(
-    private val employeeRepository: EmployeeRepository
+    private val employeeRepository: EmployeeRepository,
+    private val jwtService: JwtService
 ) {
-    fun execute(employeeId: UUID, input: AdmissionInput): AdmissionOutput {
+    fun execute(employeeId: UUID, input: AdmissionInput, accessToken: String): AdmissionOutput {
+        // validate accessToken
+        jwtService.isValid(accessToken)
         // check if employee exists
         val employee = employeeRepository.findById(employeeId)
             ?: throw EmployeeExceptions.NotFound()

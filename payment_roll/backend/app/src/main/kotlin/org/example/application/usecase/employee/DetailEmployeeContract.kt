@@ -17,6 +17,8 @@ class DetailEmployeeContract(
     private val jwtService: JwtService
 ) {
     fun execute(employeeId: UUID, contractId: UUID, accessToken: String): EmployeeContractFullOutput {
+        // validate accessToken
+        jwtService.isValid(accessToken)
         val employee: Employee = employeeRepository.findById(employeeId)
             ?: throw EmployeeExceptions.NotFound()
         val contract = employee.contracts.singleOrNull { it.id == contractId }
