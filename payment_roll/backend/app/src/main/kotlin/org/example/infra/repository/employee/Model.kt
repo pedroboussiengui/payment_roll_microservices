@@ -31,6 +31,7 @@ object ContractModel : Table("contract") {
     val department = varchar("department", 100)
     val position = varchar("position", 100)
     val function = varchar("function", 100).nullable()
+    val possibleEvents = varchar("possible_events", 255)
     val employeeId = uuid("employee_id").references(EmployeeModel.id)
     override val primaryKey = PrimaryKey(id)
 }

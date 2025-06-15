@@ -36,5 +36,11 @@ fun StatusPagesConfig.employeeExceptions() {
             status = HttpStatusCode.NotFound.value
         ))
     }
-
+    exception<ContractExceptions.UnableHandleEvent> { call, cause ->
+        call.respond(HttpStatusCode.UnprocessableEntity, Problem(
+            title = "Unable to handle event",
+            detail = cause.message!!,
+            status = HttpStatusCode.UnprocessableEntity.value
+        ))
+    }
 }

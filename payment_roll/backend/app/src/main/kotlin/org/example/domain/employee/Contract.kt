@@ -1,5 +1,7 @@
 package org.example.domain.employee
 
+import org.example.domain.employee.ContractState.Active
+import org.example.domain.employee.ContractState.Afastado
 import java.time.LocalDate
 import java.util.*
 
@@ -15,8 +17,7 @@ data class Contract(
     val department: String,
     val position: String,
     val function: String?,
-    val events: MutableList<Event> = mutableListOf(),
-    private val _pendingEvents: MutableList<Event> = mutableListOf()
+    val events: MutableList<Event> = mutableListOf()
 ) {
     companion object {
         fun create(
@@ -35,7 +36,7 @@ data class Contract(
                 entryDate,
                 exerciseDate,
                 contractType,
-                ContractState.Active,
+                ContractState.Inactive,
                 department,
                 position,
                 function
@@ -45,14 +46,30 @@ data class Contract(
 
     fun addEvent(event: Event) {
         events.add(event)
-        _pendingEvents.add(event)
-    }
-
-    fun setState(state: ContractState) {
-        contractState = state
     }
 
     var possibleEvents: List<ContractEvent> = mutableListOf()
+
+    fun admit() {
+        contractState = Active
+        possibleEvents = listOf(
+            ContractEvent.Afastamento
+        )
+    }
+
+    fun afastar() {
+        contractState = Afastado
+        possibleEvents = listOf(
+            ContractEvent.Retorno
+        )
+    }
+
+    fun remove() {
+        contractState = Active
+        possibleEvents = listOf(
+            ContractEvent.Afastamento
+        )
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -70,13 +87,8 @@ data class Contract(
     override fun hashCode(): Int {
         return listOf(
             matricula, entryDate, exerciseDate,
-            contractType, department, position, function
+            contractType, department, position, function,
+            contractState
         ).hashCode()
-    }
-
-    fun collectNewEvents(): List<Event> {
-        val toInsert = _pendingEvents.toList()
-        _pendingEvents.clear()
-        return toInsert
     }
 }

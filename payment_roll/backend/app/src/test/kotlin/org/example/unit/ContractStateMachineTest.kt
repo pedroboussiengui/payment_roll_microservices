@@ -22,13 +22,21 @@ class ContractStateMachineTest {
             position = "Software Engineer",
             function = "Backend Developer"
         )
-        assertEquals(ContractState.Active, contract.contractState)
+        assertEquals(ContractState.Inactive, contract.contractState)
 
-        val stateMachine = ContractStateMachine(contract)
+        var stateMachine = ContractStateMachine(contract)
+
+        stateMachine.handle(ContractEvent.Admission)
+        assertEquals(ContractState.Active, contract.contractState)
+        assertEquals(listOf(ContractEvent.Afastamento),contract.possibleEvents)
+
+        stateMachine = ContractStateMachine(contract)
 
         stateMachine.handle(ContractEvent.Afastamento)
         assertEquals(ContractState.Afastado, contract.contractState)
         assertEquals(listOf(ContractEvent.Retorno),contract.possibleEvents)
+
+        stateMachine = ContractStateMachine(contract)
 
         stateMachine.handle(ContractEvent.Retorno)
         assertEquals(ContractState.Active, contract.contractState)

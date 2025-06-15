@@ -73,7 +73,8 @@ class AdmissionTest {
             position = "Software Engineer",
             function = "Backend Developer"
         )
-        admission.execute(output.employeeId, input2)
+
+        val admissionOutput = admission.execute(output.employeeId, input2)
 
         val output2 = listEmployeeContracts.execute(output.employeeId)
         assertEquals(1, output2.size)
@@ -90,9 +91,8 @@ class AdmissionTest {
         assertEquals(1, output3.size)
         assertEquals(EventType.Admission, output3[0].type)
 
-//        val output4 = detailEmployeeContract.execute(output.employeeId, output2[0].id, "")
-
-        delay(5000)
+        val detail1 = detailEmployeeContract.execute(output.employeeId, output2[0].id, "")
+        println(detail1)
 
         val input3 = AfastamentoInput(reason = "Doença")
 
@@ -102,6 +102,9 @@ class AdmissionTest {
         assertEquals(2, output4.size)
         assertEquals(EventType.Admission, output4[0].type)
         assertEquals(EventType.Afastamento, output4[1].type)
+
+        val detail2 = detailEmployeeContract.execute(output.employeeId, output2[0].id, "")
+        println(detail2)
 
         output4.forEach {
             println(it)

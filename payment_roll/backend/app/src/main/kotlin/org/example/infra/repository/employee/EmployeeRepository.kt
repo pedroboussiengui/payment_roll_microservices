@@ -3,6 +3,7 @@ package org.example.infra.repository.employee
 import org.example.domain.employee.AdmissionEvent
 import org.example.domain.employee.AfastamentoEvent
 import org.example.domain.employee.Contract
+import org.example.domain.employee.ContractEvent
 import org.example.domain.employee.ContractState
 import org.example.domain.employee.Employee
 import org.example.infra.repository.employee.ContractModel.contractState
@@ -82,6 +83,7 @@ class EmployeeRepositoryImpl : EmployeeRepository {
                         it[department] = contract.department
                         it[position] = contract.position
                         it[function] = contract.function
+                        it[possibleEvents] = contract.possibleEvents.joinToString(";")
                         it[employeeId] = employee.id!!
                     }
                 } else if (currentContracts[contract.id] != null) {
@@ -95,6 +97,7 @@ class EmployeeRepositoryImpl : EmployeeRepository {
                         it[department] = contract.department
                         it[position] = contract.position
                         it[function] = contract.function
+                        it[possibleEvents] = contract.possibleEvents.joinToString(";")
                     }
                 }
 
@@ -107,18 +110,6 @@ class EmployeeRepositoryImpl : EmployeeRepository {
                         is AfastamentoEvent -> insertAfastamento(event, contractId)
                     }
                 }
-
-                // Persiste os eventos novos
-//                for (event in contract.collectNewEvents()) {
-//                    when (event) {
-//                        is AdmissionEvent -> {
-//                            insertAdmission(event, contractId)
-//                        }
-//                        is AfastamentoEvent -> {
-//                            insertAfastamento(event, contractId)
-//                        }
-//                    }
-//                }
             }
         }
     }
@@ -224,6 +215,9 @@ class EmployeeRepositoryImpl : EmployeeRepository {
                         it[ContractModel.position],
                         it[ContractModel.function]
                     )
+                    contract.possibleEvents = it[ContractModel.possibleEvents].split(";").map {
+                        ContractEvent.fromString(it)
+                    }
                     selectAllEvents(contract)
                     contract
                 }.toMutableList()
@@ -249,7 +243,7 @@ class EmployeeRepositoryImpl : EmployeeRepository {
             }.singleOrNull()
             employee?.let {
                 val contracts = ContractModel.selectAll().where { ContractModel.employeeId eq employee.id!! }.map {
-                    Contract(
+                    val contract = Contract(
                         it[ContractModel.id],
                         it[ContractModel.matricula],
                         it[ContractModel.entryDate],
@@ -260,6 +254,10 @@ class EmployeeRepositoryImpl : EmployeeRepository {
                         it[ContractModel.position],
                         it[ContractModel.function]
                     )
+                    contract.possibleEvents = it[ContractModel.possibleEvents].split(";").map {
+                        ContractEvent.fromString(it)
+                    }
+                    contract
                 }.toMutableList()
                 it.copy(contracts = contracts)
             }

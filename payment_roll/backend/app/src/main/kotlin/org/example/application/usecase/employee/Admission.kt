@@ -3,6 +3,8 @@ package org.example.application.usecase.employee
 import kotlinx.serialization.Serializable
 import org.example.domain.employee.AdmissionEvent
 import org.example.domain.employee.Contract
+import org.example.domain.employee.ContractEvent
+import org.example.domain.employee.ContractStateMachine
 import org.example.domain.employee.ContractType
 import org.example.domain.employee.EmployeeExceptions
 import org.example.domain.employee.Event
@@ -31,20 +33,23 @@ class Admission(
             position = input.position,
             function = input.function
         )
+        // handle contract in state machine
+        val stateMachine = ContractStateMachine(contract)
+        stateMachine.handle(ContractEvent.Admission)
         // add contract to employee
         employee.addContract(contract)
         // create admission event
-        val admissionEvent = AdmissionEvent(input.entryDate, input.exerciseDate)
+        val event = AdmissionEvent(input.entryDate, input.exerciseDate)
         // add event to events contract
-        contract.addEvent(admissionEvent)
-        // persist
+        contract.addEvent(event)
+        // persist in database
         employeeRepository.update(employee)
         // return event data
         return AdmissionOutput(
-            admissionEvent.type,
-            admissionEvent.entryDate,
-            admissionEvent.createdAt,
-            admissionEvent.exerciseDate
+            event.type,
+            event.entryDate,
+            event.createdAt,
+            event.exerciseDate
         )
     }
 }
