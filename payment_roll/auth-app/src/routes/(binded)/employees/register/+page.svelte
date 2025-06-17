@@ -1,5 +1,6 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
+    import InputCpf from "$lib/components/InputCpf.svelte";
     import Navbar from "$lib/components/navbar.svelte";
     import payroll from "$lib/services/axios/payroll";
     import z from "zod";
@@ -37,7 +38,16 @@
         fatherName: false
 	};
 
-    let errors: FormFields = {...data}
+    let errors: Record<keyof FormFields, string> = {
+        name: '',
+        document: '',
+        birthDate: '',
+        identity: '',
+        maritalStatus: '',
+        gender: '',
+        motherName: '',
+        fatherName: ''
+    }
 
     const schema = z.object({
         name: z.string().min(1, 'This field is required'),
@@ -60,7 +70,7 @@
         errors = Object.keys(data).reduce((acc, key) => {
             acc[key as keyof FormFields] = '';
             return acc;
-        }, {} as FormFields);
+        }, {} as Record<keyof FormFields, string>);
 
         if (!result.success) {
             for (const issue of result.error.issues) {
@@ -81,17 +91,19 @@
 
     async function handleSubmit(event: Event) {
         event.preventDefault();
+        console.log(touched.document);
+        console.log(errors.document);
         console.log(data);
         console.log(isFormValid);
 
-        payroll.post('/employees', data)
-            .then((res) => {
-                console.log(res.data);
-                goto(`/employees/${res.data.employeeId}`)
-            })
-            .catch((err) => {
-                console.log(err);
-            })
+        // payroll.post('/employees', data)
+        //     .then((res) => {
+        //         console.log(res.data);
+        //         goto(`/employees/${res.data.employeeId}`)
+        //     })
+        //     .catch((err) => {
+        //         console.log(err);
+        //     })
     }
 </script>
 
@@ -117,15 +129,12 @@
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
-            Document
-            <input 
-                type="text" 
-                bind:value={data.document} 
-                on:blur={() => touched.document = true}
-                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition {touched.document && errors.document ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}"
-            >
-        </label>
+        <label for="document" class="block text-sm font-medium text-gray-700 mb-1">Document</label>
+        <InputCpf 
+            bind:value={data.document}
+            on:blur={() => touched.document = true}
+            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition {touched.document && errors.document ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}"
+        />
         {#if touched.document && errors.document}
 			<p class="text-sm text-red-600 mt-1">{errors.document}</p>
 		{/if}
