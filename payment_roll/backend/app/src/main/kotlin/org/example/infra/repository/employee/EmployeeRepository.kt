@@ -6,6 +6,7 @@ import org.example.domain.employee.Contract
 import org.example.domain.employee.ContractEvent
 import org.example.domain.employee.ContractState
 import org.example.domain.employee.Employee
+import org.example.domain.employee.RetornoEvent
 import org.example.infra.repository.employee.ContractModel.contractState
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.create
@@ -44,7 +45,8 @@ class EmployeeRepositoryImpl : EmployeeRepository {
                 EmployeeModel,
                 ContractModel,
                 AdmissionEventModel,
-                AfastamentoEventModel
+                AfastamentoEventModel,
+                RetornoEventModel
             )
         }
     }
@@ -103,11 +105,13 @@ class EmployeeRepositoryImpl : EmployeeRepository {
 
                 AdmissionEventModel.deleteWhere() { AdmissionEventModel.contractId eq contractId }
                 AfastamentoEventModel.deleteWhere() { AfastamentoEventModel.contractId eq contractId }
+                RetornoEventModel.deleteWhere() { RetornoEventModel.contractId eq contractId }
 
                 for (event in contract.events) {
                     when (event) {
                         is AdmissionEvent -> insertAdmission(event, contractId)
                         is AfastamentoEvent -> insertAfastamento(event, contractId)
+                        is RetornoEvent -> insertRetorno(event, contractId)
                     }
                 }
             }
@@ -133,6 +137,15 @@ class EmployeeRepositoryImpl : EmployeeRepository {
         }
     }
 
+    private fun insertRetorno(event: RetornoEvent, contractIdValue: UUID) {
+        RetornoEventModel.insert {
+            it[eventType] = event.type
+            it[createdAt] = event.createdAt
+            it[reason] = event.reason
+            it[contractId] = contractIdValue
+        }
+    }
+
     private fun selectAllEvents(contract: Contract) {
         val admissionEvents = AdmissionEventModel.selectAll().where { AdmissionEventModel.contractId eq contract.id!! }.map {
             AdmissionEvent(
@@ -147,8 +160,15 @@ class EmployeeRepositoryImpl : EmployeeRepository {
                 it[AfastamentoEventModel.createdAt]
             )
         }
+        val retornoEvent = RetornoEventModel.selectAll().where { RetornoEventModel.contractId eq contract.id!! }.map {
+            RetornoEvent(
+                it[RetornoEventModel.reason],
+                it[RetornoEventModel.createdAt]
+            )
+        }
         contract.events.addAll(admissionEvents)
         contract.events.addAll(afastamentoEvents)
+        contract.events.addAll(retornoEvent)
     }
 
     override fun add(employee: Employee): UUID {

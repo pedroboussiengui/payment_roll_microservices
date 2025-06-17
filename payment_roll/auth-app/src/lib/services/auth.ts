@@ -7,9 +7,14 @@ export async function authenticate(token: string) {
 }
 
 export async function getTokens(contractId: string) {
-    const res = await idp.post(`/tokens/${contractId}`);
-    accessToken.set(res.data.accessToken);
-    goto('/home')
+    await idp.post(`/tokens/${contractId}`)
+        .then((res) => {
+            accessToken.set(res.data.accessToken);
+            goto('/home')
+        })
+        .catch((err) => {
+            console.error('Error getting tokens:', err);
+        });
 }
 
 export async function refreshToken(): Promise<string | null> {

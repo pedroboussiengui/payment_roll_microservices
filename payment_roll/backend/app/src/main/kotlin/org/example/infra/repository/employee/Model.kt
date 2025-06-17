@@ -54,3 +54,12 @@ object AfastamentoEventModel : Table("afastamento_event") {
     val contractId = uuid("contract_id").references(ContractModel.id)
     override val primaryKey = PrimaryKey(id)
 }
+
+object RetornoEventModel : Table("retorno_event") {
+    val id = integer("id").autoIncrement()
+    val eventType = enumeration<EventType>("event_type")
+    val createdAt = datetime("created_at")
+    val reason = varchar("reason", 255)
+    val contractId = uuid("contract_id").references(ContractModel.id)
+    override val primaryKey = PrimaryKey(id)
+}

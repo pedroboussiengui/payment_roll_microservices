@@ -13,7 +13,7 @@
 
     const handleConfirm = async () => {
         console.log(data);
-        const res = await afastar();
+        const res = await retornar();
         dispatch('confirm', res);
         data = { reason: '' }
     };
@@ -23,8 +23,8 @@
         data = { reason: '' }
     };
 
-    async function afastar() {
-        await payroll.post(`/employees/${employeeId}/contracts/${contractId}/afastamento`, data)
+    async function retornar() {
+        await payroll.post(`/employees/${employeeId}/contracts/${contractId}/retorno`, data)
             .then((res) => {
                 console.log(res.data);
                 return true;
@@ -41,10 +41,10 @@
     <div class="fixed inset-0 bg-black bg-black/50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
             
-            <h2 class="text-xl font-semibold mb-4">Evento de afastamento</h2>
+            <h2 class="text-xl font-semibold mb-4">Evento de retorno</h2>
             
             <div>
-                <label for="matricula">Motivo do afastamento</label>
+                <label for="matricula">Motivo do retorno</label>
                 <input 
                     type="text" 
                     class="w-full border border-gray-300 rounded"

@@ -8,6 +8,7 @@ import org.example.domain.employee.ContractExceptions
 import org.example.domain.employee.Employee
 import org.example.domain.employee.EmployeeExceptions
 import org.example.domain.employee.EventType
+import org.example.domain.employee.RetornoEvent
 import org.example.infra.jwt.JwtService
 import org.example.infra.ktor.LocalDateSerializer
 import org.example.infra.ktor.LocalDateTimeSerializer
@@ -40,8 +41,13 @@ class ListContractEvents(
                     reason = event.reason,
                     createdAt = event.createdAt
                 ).also { output.add(it) }
+                is RetornoEvent -> RetornoEventOutput(
+                    reason = event.reason,
+                    createdAt = event.createdAt
+                ).also { output.add(it) }
             }
         }
+        output.sortByDescending { it.createdAt }
         return output
     }
 }
@@ -71,4 +77,13 @@ data class AfastamentoEventOutputDTO(
     override val createdAt: LocalDateTime,
     @SerialName("eventType")
     override val type: EventType = EventType.Afastamento
+) : EventOutputDTO
+
+@Serializable
+data class RetornoEventOutput(
+    val reason: String,
+    @Serializable(with = LocalDateTimeSerializer::class)
+    override val createdAt: LocalDateTime,
+    @SerialName("eventType")
+    override val type: EventType = EventType.Retorno
 ) : EventOutputDTO

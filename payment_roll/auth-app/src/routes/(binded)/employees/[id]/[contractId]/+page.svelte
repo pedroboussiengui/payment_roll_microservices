@@ -3,9 +3,10 @@
     import { clickOutside } from "$lib/actions/clickOutside";
     import AfastamentoModal from "$lib/components/AfastamentoModal.svelte";
     import Navbar from "$lib/components/navbar.svelte";
+    import RetornoModal from "$lib/components/RetornoModal.svelte";
     import payroll from "$lib/services/axios/payroll";
     import type { Employee, EmployeeContract, ContractEvent } from "$lib/types";
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import { Icon, EllipsisVertical } from "svelte-hero-icons";
     
     $: employeeId = $page.params.id;
@@ -16,29 +17,47 @@
     let events: ContractEvent[] = []
     let error: string | null = null;
 
+    // modal de eventos contratuais
+    let isModalOpened = {
+        afastamento: false,
+        retorno: false
+    }
+
+    function openOnly(modalName: keyof typeof isModalOpened) {
+        for (const key in isModalOpened) {
+            isModalOpened[key as keyof typeof isModalOpened] = false;
+        }
+        isModalOpened[modalName] = true;
+    }
+
     onMount(async () => {
         try {
             const employeeRes = await payroll.get(`/employees/${employeeId}`);
             employee = employeeRes.data;
-			const contractRes = await payroll.get(`/employees/${employeeId}/contracts/${contractId}`);
-			contract = contractRes.data;
-            getContractEvents()
+			loadData();
         } catch(err: any) {
             error = err.message;
             console.log(err);
         }
     });
 
-    async function getContractEvents() {
-        await payroll.get(`/employees/${employeeId}/contracts/${contractId}/events`)
-            .then((res) => {
-                events = res.data;
-                console.log('Eventos');
-                console.log(res.data);
-            })
-            .catch((err) => {
-                console.log(err.response.data);
-            });
+    async function loadData() {
+        const [contraactReponse, eventsResponse] = await Promise.all([
+            payroll.get(`/employees/${employeeId}/contracts/${contractId}`),
+            payroll.get(`/employees/${employeeId}/contracts/${contractId}/events`)
+        ]);
+        contract = {...contraactReponse.data};
+        events = [...eventsResponse.data];
+        console.log(contract);
+        console.log(events);
+    }
+
+    async function refreshData() {
+        console.log("dentro do refresh");
+        contract = null;
+        events = [];
+        await tick();
+        await loadData();
     }
 
     let showEventsMenu = false;
@@ -50,15 +69,20 @@
     function handleAction(event: string) {
         console.log("Ação:", event);
         if (event === "Afastamento") {
-            isModalOpen = true;
+            openOnly('afastamento')
+        }
+        if (event === "Retorno") {
+            openOnly('retorno')
         }
         showEventsMenu = false;
     }
-
-    let isModalOpen = false;
 </script>
 
 <Navbar />
+
+<button on:click={refreshData}>
+    Atualizar Dados
+</button>
 
 {#if error}
 	<p class="text-red-600 font-semibold p-4">{error}</p>
@@ -115,7 +139,8 @@
                 class="p-2 rounded hover:bg-gray-100"
                 aria-haspopup="true"
                 aria-expanded={showEventsMenu}
-            ><Icon src="{EllipsisVertical}" solid size="16" />
+            >
+                Eventos <Icon src="{EllipsisVertical}" solid size="16" />
             </button>
             {#if showEventsMenu}
                 <div 
@@ -173,6 +198,7 @@
     <fieldset class="border border-gray-300 rounded-lg p-6 m-2 relative">
 		<legend class="text-lg font-semibold text-gray-700 px-2">Contract events</legend>
         
+        ....................................
         {#each events as event}
             {#if event.eventType === "Admission"}
                 <p>{event.eventType}</p>
@@ -182,22 +208,35 @@
                 <p>{event.eventType}</p>
                 <p>{event.createdAt}</p>
                 <p>{event.reason}</p>
+            {:else if event.eventType === "Retorno"}
+                <p>{event.eventType}</p>
+                <p>{event.createdAt}</p>
+                <p>{event.reason}</p>
             {/if}
+            ....................................
         {/each}
 
     </fieldset>
 
     <AfastamentoModal 
-        isOpen={isModalOpen}
+        isOpen={isModalOpened.afastamento}
         employeeId={employeeId}
         contractId={contractId}
-        on:confirm={(result) => {
-            console.log("resultado" + result.detail);
-            if (result.detail) {
-                getContractEvents();
-            }
-            isModalOpen = false;
+        on:confirm={async (result) => {
+            await refreshData();
+            isModalOpened.afastamento = false;
         }}
-        on:cancel={() => (isModalOpen = false)}
+        on:cancel={() => (isModalOpened.afastamento = false)}
+    />
+
+    <RetornoModal 
+        isOpen={isModalOpened.retorno}
+        employeeId={employeeId}
+        contractId={contractId}
+        on:confirm={async (result) => {
+            await refreshData();
+            isModalOpened.retorno = false;
+        }}
+        on:cancel={() => (isModalOpened.retorno = false)}
     />
 {/if}

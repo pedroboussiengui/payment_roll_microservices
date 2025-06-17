@@ -5,7 +5,8 @@ import java.time.LocalDateTime
 
 enum class EventType {
     Admission,
-    Afastamento
+    Afastamento,
+    Retorno
 }
 
 sealed class Event {
@@ -26,4 +27,11 @@ data class AfastamentoEvent(
     override val createdAt: LocalDateTime = LocalDateTime.now()
 ) : Event() {
     override val type: EventType = EventType.Afastamento
+}
+
+data class RetornoEvent(
+    val reason: String,
+    override val createdAt: LocalDateTime = LocalDateTime.now()
+) : Event() {
+    override val type: EventType = EventType.Retorno
 }

@@ -56,4 +56,9 @@ interface AfastamentoEvent extends BaseEvent {
     reason: string;
 }
 
-export type ContractEvent = AdmissionEvent | AfastamentoEvent;
+interface RetornoEvent extends BaseEvent {
+    eventType: "Retorno";
+    reason: string;
+}
+
+export type ContractEvent = AdmissionEvent | AfastamentoEvent | RetornoEvent;
